@@ -22,7 +22,6 @@ export class APIService {
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
-    
     const response = await axios.get(url);
     return response.data;
   }
@@ -35,8 +34,33 @@ export class APIService {
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
-    
     const response = await axios.get(url);
     return response.data;
+  }
+
+  async getTopAccessedControllers(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/controllers/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
   }
 }

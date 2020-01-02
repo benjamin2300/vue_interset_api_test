@@ -1,7 +1,17 @@
 <template>
   <el-container>
-    <el-header>Interset Test</el-header>
+    <el-header>
+      <div class="site-title-div">
+        Interset Test
+      </div>
+      <!-- <div class="pdf-generator-div">
+        <el-button @click="pdfGenerate" type="info" icon="el-icon-message" circle></el-button>
+      </div> -->
+    </el-header>
+    
+    <!-- <el-button class=""type="primary" icon="el-icon-edit" circle></el-button> -->
     <el-main>
+      <table id="my-table"></table>
       <el-card class="box-card">
         <div slot="header" class="clearfix">
           <div class="card-title-div">
@@ -77,6 +87,24 @@
               width="300">
             </el-table-column>
           </el-table>
+
+          <el-table v-if="this.showTopAccessedControllers"
+            :data="interset_data"
+            :default-sort="{prop:'accessed', order:'descending'}"
+            stripe
+            style="width: 100%;"
+            max-height="700">
+            <el-table-column
+              prop="accessed"
+              label="接入次數"
+              width="200">
+            </el-table-column>
+            <el-table-column
+              prop="entityName"
+              label="使用者"
+              width="300">
+            </el-table-column>
+          </el-table>
         </div>
       </el-card>
     </el-main>
@@ -86,7 +114,8 @@
 <script>
 // @ is an alias to /src
 import {APIService} from '@/APIService.js';
-import { log } from 'util';
+import $ from 'jquery';
+
 const apiService = new APIService();
 export default {
   name: 'home',
@@ -98,6 +127,7 @@ export default {
       interset_data: [],
       showTopRiskyUsers: false,
       showTopRiskyControllers: false,
+      showTopAccessedControllers: false,
       ts: "",
       te: ""
     };
@@ -116,17 +146,58 @@ export default {
         this.interset_data = data.data;
       });
     },
+    getTopAccessedControllers(ts, te){
+      apiService.getTopAccessedControllers(ts, te).then((data) => {
+        // console.log(data)
+        this.interset_data = data;
+      });
+    },
+    // close all table
+    clearAllTables(){
+      this.showTopRiskyUsers = false;
+      this.showTopRiskyControllers = false;
+      this.showTopAccessedControllers = false;
+    },
     // handle dropdown events
     handleCommand(command){
       if(command === 'risky_users'){
         this.getTopRiskyUsers(this.getTimestamp(this.ts), this.getTimestamp(this.te));
+        this.clearAllTables();
         this.showTopRiskyUsers = true;
         // console.log(this.getTimestamp(this.ts));
         // console.log(this.getTimestamp(this.te));        
       }else if(command === 'risky_controllers'){
         this.getTopRiskyControllers(this.getTimestamp(this.ts), this.getTimestamp(this.te));
+        this.clearAllTables();
         this.showTopRiskyControllers = true;
+      }else if(command === 'accessed_controllers'){
+        this.getTopAccessedControllers(this.getTimestamp(this.ts), this.getTimestamp(this.te));
+        this.clearAllTables();
+        this.showTopAccessedControllers = true;
       }
+    },
+    pdfGenerate(){
+      // console.log("test");
+      var doc = new jsPDF();
+      doc.setFont('msyh')
+      //console.log(this.interset_data);
+      let jspdf_table = []
+      for(let i=0; i<this.interset_data.length; i++){
+        jspdf_table.push([this.interset_data[i].risk, this.interset_data[i].entityName]);
+      }
+      console.log(jspdf_table);
+      
+      doc.autoTable({html: '#my-table'});
+      doc.autoTable({
+        theme: 'striped',
+        head:[['風險值', '使用者']],
+        body:jspdf_table,
+        styles: {font: "msyh"}
+      });
+      
+      doc.text(20, 20, '匯出標題');
+      // doc.autoTable(columns, data, {}); 
+      doc.save('test.pdf')
     },
     getTimestamp(datetime){
       return new Date(datetime).getTime();
@@ -217,6 +288,18 @@ export default {
     margin: 2px 5px;
     float: left;
   }
+
+  /* .site-title-div {
+    width: 100px;
+    float: left;
+  } */
+
+  .pdf-generator-div {
+    width: 20px;
+    float: left;
+  }
+
+
   .el-dropdown {
     width: 100%;
   }

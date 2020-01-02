@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '../views/Home.vue'
-
+import IntersetReporting from '@/views/IntersetReporting'
 Vue.use(VueRouter)
 
 const routes = [
@@ -10,6 +10,11 @@ const routes = [
     name: 'home',
     component: Home
   },
+  {
+    path: '/reporting',
+    name: 'intersetReporting',
+    component: IntersetReporting
+  }
   // {
   //   path: '/about',
   //   name: 'about',
