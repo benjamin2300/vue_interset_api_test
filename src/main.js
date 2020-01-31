@@ -6,7 +6,7 @@ import ElementUI from 'element-ui';
 
 
 import 'element-ui/lib/theme-chalk/index.css';
-const API_URL = 'https://192.168.100.30';
+const API_URL = 'https://192.168.100.34';
 
 axios({
   method: 'post',
@@ -22,6 +22,8 @@ axios({
   // console.log(t_token);
   localStorage.setItem("interset_token", t_token);
 });
+
+window.svgLib = require('save-svg-as-png')
 
 Vue.config.productionTip = false
 Vue.use(ElementUI);
