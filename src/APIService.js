@@ -104,4 +104,83 @@ export class APIService {
     }
     return rData;
   }
+
+  // get top risky resources
+  async getTopRiskyResources(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/resources/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed resources
+  async getTopAccessedResources(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/resources/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+  // get top risky shares
+  async getTopRiskyShares(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/shares/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed shares
+  async getTopAccessedShares(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/shares/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
 }
