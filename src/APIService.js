@@ -13,12 +13,38 @@ export class APIService {
     return response.data;
   }
 
+  async getRiskGraph(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/riskGraph?interval=day&tz=UTC%2B8`;
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+  async getAuthenication(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/topFailedLogin?count=10`;
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    return response.data;
+  }
+
+
   // get top risky users
   async getTopRiskyUsers(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    // console.log(ts);
-    let url = `${API_URL}/api/search/0/users/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    // console.log(ts);    
+    let url = `${API_URL}/api/search/0/users/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`;
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -30,7 +56,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/controllers/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/controllers/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -43,7 +69,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/controllers/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/controllers/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -70,7 +96,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/projects/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/projects/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -83,7 +109,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/projects/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/projects/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -110,7 +136,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/resources/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/resources/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -123,7 +149,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/resources/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/resources/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -149,7 +175,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/shares/topRisky?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/shares/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -162,7 +188,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/shares/topAccessed?sort=maximum&markup=false&tz=UTC&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/shares/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }

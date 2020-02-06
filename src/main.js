@@ -23,7 +23,7 @@ axios({
   localStorage.setItem("interset_token", t_token);
 });
 
-window.svgLib = require('save-svg-as-png')
+// window.svgLib = require('save-svg-as-png')
 
 Vue.config.productionTip = false
 Vue.use(ElementUI);
