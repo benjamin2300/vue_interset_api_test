@@ -84,6 +84,7 @@ export default {
       return apiService.getAuthenication(ts, te);
     },
     generatePDFRiskPage(doc, data){
+      
       doc.addPage();
       doc.setFontSize(24);
       doc.text("總體風險值變化", 60, 20);
@@ -184,6 +185,8 @@ export default {
       
     },
     generatePDFAuthenicationPage(doc, data){
+      $('#chart').empty();
+      $('#canvas').empty();
       doc.addPage();
       doc.setFontSize(24);
       doc.text("登入失敗最高的使用者", 60, 20);
@@ -199,16 +202,101 @@ export default {
           .attr("height", chart_height);
       
       let x0_scale = d3.scaleBand()
-            .domain(data.map(d)(function(d){return d.entityName;}))
-            .rangeRound([margin.left, chart_height - margin.right])
-            .paddingInner(0.05);
+            .domain(data.map(function(d){return d.entityName;}))
+            .rangeRound([margin.left, chart_width - margin.right])
+            .paddingInner(0.2);
       
       let x1_scale = d3.scaleBand()
             .domain(keys)
             .rangeRound([0, x0_scale.bandwidth()]);
       
       let y_scale = d3.scaleLinear()
-            .domain([0, d3])
+            .domain([0, d3.max(data, function(d){ return d3.max(keys, function(key){return d[key];})})])
+            .range([chart_height - margin.bottom, margin.top]);
+
+      let z_scale = d3.scaleOrdinal()
+            .range(["#41ef08", "#e93b26"]);
+
+      let legend_scale = d3.scaleOrdinal()
+            .domain(keys)
+            .range(["登入成功", "登入失敗"]);
+
+      svg.append("g")
+        .attr("class", "x-axis")
+        .style('color', 'black')
+        .attr("transform", "translate(0, " + (chart_height - margin.bottom) + ")")
+        .call(d3.axisBottom(x0_scale))
+        .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-.55em")
+        .attr("transform", "rotate(-90)");
+      
+      svg.append("g")
+        .attr("class", "y-axis")
+        .style('color', 'black')
+        .attr("transform", "translate(" + margin.left + ", 0)")
+        .call(d3.axisLeft(y_scale));
+
+      svg.append("g")
+        .selectAll(".slice")
+        .data(data)
+        .enter()
+        .append("g")
+        .attr("class", "slice")
+        .attr("transform", function(d){return "translate(" + x0_scale(d.entityName) + ",0)"})
+        .selectAll("rect")
+        .data(function(d){return keys.map(function(key){return {key: key, value:d[key]};});})
+        .enter()
+        .append("rect")
+        .attr("x", function(d){return x1_scale(d.key);})
+        .attr("y", function(d){return y_scale(d.value);})
+        .attr("width", x1_scale.bandwidth())
+        .attr("height", function(d){return chart_height - margin.bottom - y_scale(d.value)})
+        .attr("fill", function(d){return z_scale(d.key)});
+      
+      // console.log(keys);
+      // console.log(keys.slice());
+      // console.log(keys.slice().reverse());
+      
+      
+      let legend = svg.selectAll(".legend")
+        .attr("font-family", "sans-serif")
+        .attr("font-size", 10)
+        .attr("text-anchor", "end")
+        .data(keys.slice().reverse())
+        .enter()
+        .append("g")
+        .attr("class", "legend")
+        .attr("transform", function(d, i){return "translate(0," + i * 20 + ")"})
+        .style("opacity", "1");
+      
+      legend.append("rect")
+        .attr("x", chart_width - 20)
+        .attr("width", 15)
+        .attr("height", 15)
+        .attr("fill", function(d){ return z_scale(d); });
+
+      legend.append("text")
+        .attr("x", chart_width - 30)
+        .attr("y", 9.5)
+        .attr("dy", "0.32em")
+        .style("text-anchor", "end")
+        .text(function(d){ return legend_scale(d);});
+      
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
+      
     },
     generatePDFPage(doc, data, entityName, pageType, table_flag=false, chart_flag=false){
       // get chinese name, title header
@@ -360,7 +448,6 @@ export default {
         }
       });
     },
-
     pdfGenerate(){
       // console.log("test");
       // 1st Page
@@ -455,7 +542,7 @@ export default {
         // authenication page
         // ==========================
         data = values[10].data;
-        console.log(data);
+        // console.log(data);
         this.generatePDFAuthenicationPage(doc, data);
         // this.generatePDFRiskPage(doc, data);
         
