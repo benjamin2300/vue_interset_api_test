@@ -3,7 +3,7 @@
   font-family: "OpenSans";
   src: url("../fonts/OpenSans-Regular.ttf") format('truetype');
   font-weight: 400;
-  font-family: normal;
+  font-style: normal;
 }
 
 /* OpenSans italic */
@@ -11,7 +11,7 @@
   font-family: "OpenSans";
   src: url("../fonts/OpenSans-Italic.ttf") format('truetype');
   font-weight: 400;
-  font-family: italic;
+  font-style: italic;
 }
 
 /* OpenSans bold */
@@ -19,5 +19,33 @@
   font-family: "OpenSans";
   src: url("../fonts/OpenSans-Bold.ttf") format('truetype');
   font-weight: 700;
-  font-family: bold;
+  font-style: bold;
+}
+
+
+@font-face {
+  font-family: "NotoSerifTC";
+  src: url("../fonts/NotoSerifTC-Regular.otf") format('opentype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: "NotoSerifTC";
+  src: url("../fonts/NotoSerifTC-Bold.otf") format('opentype');
+  font-weight: 700;
+  font-style: bold;
+}
+
+@font-face {
+  font-family: "NotoSerifTC";
+  src: url("../fonts/NotoSerifTC-Light.otf") format('opentype');
+  font-weight: 200;
+  font-style: light;
+}
+
+html {
+  font-family: NotoSerifTC;
+  font-weight: 400;
+  font-style: bold;
 }

@@ -20,7 +20,7 @@
       <div id="form-div">
         <el-form ref="form" :model="formData" >
           <el-form-item label="報表種類" prop="type">
-            <el-radio-group v-model="formData.formType">
+            <el-radio-group class="report-type" v-model="formData.formType">
               <el-radio label="year">年報</el-radio>
               <el-radio label="season">季報</el-radio>
               <el-radio label="month">月報</el-radio>
@@ -29,6 +29,7 @@
           </el-form-item>
           <el-form-item>
             <el-form-item label="時間範圍">
+              <div style="display:inline-block; margin-left:40px;">
               <el-date-picker
               v-model="formData.year"
               type="year"
@@ -52,7 +53,6 @@
                 <el-button type="primary">
                   選擇季度<i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
-                
                 <el-dropdown-menu slot="dropdown">
                   <el-dropdown-item>Q1(1月～3月)</el-dropdown-item>
                   <el-dropdown-item>Q2(4月～6月)</el-dropdown-item>
@@ -69,6 +69,8 @@
                 end-placeholder="结束日期"
                 unlink-panels>
               </el-date-picker>
+              </div>
+
 
             </el-form-item>
           </el-form-item>
@@ -112,7 +114,7 @@ export default {
       // ts: "",
       // te: "",
       formData: {
-        formType: "",
+        formType: "year",
         year:"",
         month:"",
         season_year:"",
@@ -1023,7 +1025,6 @@ export default {
   .el-main {
     background-color: #E9EEF3;
     color: #333;
-    text-align: center;
     line-height: 160px;
   }
 
@@ -1045,9 +1046,7 @@ export default {
     padding-left: 20px;
     margin: auto;
     /* font-family: Arial, "新細明體"; */
-    font-family: "OpenSans";
-    font-weight: 700;
-    font-style: normal;
+
   }
   
   body > .el-container {
@@ -1078,4 +1077,14 @@ export default {
    #div-canvas {
     display: none;
   } 
+
+  .report-type {
+    display: flex;
+    justify-content: center;
+    margin-top: 14px;
+  }
+
+  .date-picker {
+    margin-left: 40px;
+  }
 </style>

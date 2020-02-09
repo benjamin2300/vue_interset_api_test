@@ -53,7 +53,7 @@ export default {
   .el-main {
     background-color: #E9EEF3;
     color: #333;
-    text-align: center;
+    /* text-align: center; */
     line-height: 100px;
   }
   .login{
@@ -68,6 +68,7 @@ export default {
     padding-right: 40px;
     padding-left: 20px;
     margin: auto;
+    
     /* font-family: Arial, "新細明體"; */
     font-family: "OpenSans";
     font-weight: 700;
@@ -76,5 +77,9 @@ export default {
 
   .loginBtn {
     margin-right: 80px;
+  }
+
+  h1 {
+    text-align: center;
   }
 </style>

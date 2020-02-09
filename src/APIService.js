@@ -26,16 +26,16 @@ export class APIService {
     return response.data;
   }
 
-  async getAuthenication(ts, te) {
+  getAuthenication(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     let url = `${API_URL}/api/search/0/users/topFailedLogin?count=10`;
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
-    const response = await axios.get(url);
+    const response = axios.get(url);
     // console.log(response);
-    return response.data;
+    return response;
   }
 
 

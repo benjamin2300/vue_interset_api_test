@@ -416,18 +416,46 @@ export default {
       doc.text(date_range, 80, 160);
       // 2nd Page
       // console.log(this.ts);
-      Promise.all([
-                  apiService.getTopRiskyUsers(this.formData.ts, this.formData.te),
-                  apiService.getTopRiskyControllers(this.formData.ts, this.formData.te),
-                  apiService.getTopAccessedControllers(this.formData.ts, this.formData.te),
-                  apiService.getTopRiskyProjects(this.formData.ts, this.formData.te),
-                  apiService.getTopAccessedProjects(this.formData.ts, this.formData.te),
-                  apiService.getTopRiskyResources(this.formData.ts, this.formData.te),
-                  apiService.getTopAccessedResources(this.formData.ts, this.formData.te),
-                  apiService.getTopRiskyShares(this.formData.ts, this.formData.te),
-                  apiService.getTopAccessedShares(this.formData.ts, this.formData.te),
-                  apiService.getRiskGraph(this.formData.ts, this.formData.te),
-                  apiService.getAuthenication(this.formData.ts, this.formData.te)
+      let selection = [1,2,7,9];
+      let promiseArray = [
+        apiService.getTopRiskyUsers(this.formData.ts, this.formData.te),
+        apiService.getTopRiskyControllers(this.formData.ts, this.formData.te),
+        apiService.getTopAccessedControllers(this.formData.ts, this.formData.te),
+        apiService.getTopRiskyProjects(this.formData.ts, this.formData.te),
+        apiService.getTopAccessedProjects(this.formData.ts, this.formData.te),
+        apiService.getTopRiskyResources(this.formData.ts, this.formData.te),
+        apiService.getTopAccessedResources(this.formData.ts, this.formData.te),
+        apiService.getTopRiskyShares(this.formData.ts, this.formData.te),
+        apiService.getTopAccessedShares(this.formData.ts, this.formData.te),
+        apiService.getRiskGraph(this.formData.ts, this.formData.te),
+        apiService.getAuthenication(this.formData.ts, this.formData.te)
+      ];
+
+      let exectionPromiseArray = selection.map(d => {
+        return promiseArray[d];
+      });
+      let exectionPromiseArray = [];
+
+      selection.forEach(function(d){
+        exectionPromiseArray.push(promiseArray[d]);
+      });
+      
+
+
+      Promise.all(
+                  exectionPromiseArray
+                  //[
+                  // apiService.getTopRiskyUsers(this.formData.ts, this.formData.te),
+                  // apiService.getTopRiskyControllers(this.formData.ts, this.formData.te),
+                  // apiService.getTopAccessedControllers(this.formData.ts, this.formData.te),
+                  // apiService.getTopRiskyProjects(this.formData.ts, this.formData.te),
+                  // apiService.getTopAccessedProjects(this.formData.ts, this.formData.te),
+                  // apiService.getTopRiskyResources(this.formData.ts, this.formData.te),
+                  // apiService.getTopAccessedResources(this.formData.ts, this.formData.te),
+                  // apiService.getTopRiskyShares(this.formData.ts, this.formData.te),
+                  // apiService.getTopAccessedShares(this.formData.ts, this.formData.te),
+                  // apiService.getRiskGraph(this.formData.ts, this.formData.te),
+                  // apiService.getAuthenication(this.formData.ts, this.formData.te)
                   //  this.getTopRiskyUsers(this.ts.getTime(), this.te.getTime()),
                   //  this.getTopRiskyControllers(this.ts.getTime(), this.te.getTime()),
                   //  this.getTopAccessedControllers(this.ts.getTime(), this.te.getTime()),
@@ -439,7 +467,8 @@ export default {
                   //  this.getTopAccessedShares(this.ts.getTime(), this.te.getTime()),
                   //  this.getRiskGraph(this.ts.getTime(), this.te.getTime()),
                   //  this.getAuthenication(this.ts.getTime(), this.te.getTime()),
-                   ])
+                   //])
+                  )           
              .then((values) =>   
       {
         // ===========================
