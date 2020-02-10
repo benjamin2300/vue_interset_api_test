@@ -1,7 +1,12 @@
 <template>
-  <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
-    <el-button @click="pdfGenerate" type="primary" icon="el-icon-files" circle></el-button>
-  </el-tooltip>
+  <div>
+      <p :class="{ pHidden: !noData, pShow: noData }">please select at least one item.</p>
+      <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
+       <el-button @click="pdfGenerate" type="primary">產生pdf報表</el-button>
+      </el-tooltip>
+    
+  </div>
+  
 </template>
 
 <script>
@@ -14,7 +19,7 @@ export default {
   name: "PDFGenerator",
   data(){
     return {
-      
+      noData: false,
     }
   },
   props: {
@@ -389,34 +394,39 @@ export default {
       });
     },
     pdfGenerate(){
-      console.log(this.formData.ddd);
       
-      // console.log("test");
-      // 1st Page
-      var doc = new jsPDF();
-      doc.setFont('msyh');
+      if(this.formData.content.length == 0){
+        this.noData = !this.noData;
+      } else {
+        // console.log("test");
+        // 1st Page
+        var doc = new jsPDF();
+        doc.setFont('msyh');
 
-      // this.getTopRiskyUsers(this.getTimestamp(this.ts), this.getTimestamp(this.te));
-      
-      
-      // console.log(this.interset_data);
-      let month = [1,2,3,4,5,6,7,8,9,10,11,12]
-      
-      doc.setFontSize(24);
-      doc.text('Interset總體報表', 70, 150);
-      doc.setFontSize(10);
-      console.log(this.formData);
-      
-      let new_ts = new Date(this.formData.ts);
-      let new_te = new Date(this.formData.te);
+        // this.getTopRiskyUsers(this.getTimestamp(this.ts), this.getTimestamp(this.te));
+        
+        
+        // console.log(this.interset_data);
+        let month = [1,2,3,4,5,6,7,8,9,10,11,12]
+        
+        doc.setFontSize(24);
+        doc.text('Interset總體報表', 70, 150);
+        doc.setFontSize(10);
+        console.log(this.formData);
+        this.formData.ts = this.formData.daterange[0]
+        this.formData.te = this.formData.daterange[1]
 
-      let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
-                       + " 到 " + 
-                       new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate(); 
-      doc.text(date_range, 80, 160);
+        let new_ts = new Date(this.formData.ts);
+        let new_te = new Date(this.formData.te);
+
+        let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
+                        + " 到 " + 
+                        new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate(); 
+        doc.text(date_range, 80, 160);
+      }
+
       // 2nd Page
       // console.log(this.ts);
-      let selection = [1,2,7,9];
       let promiseArray = [
         apiService.getTopRiskyUsers(this.formData.ts, this.formData.te),
         apiService.getTopRiskyControllers(this.formData.ts, this.formData.te),
@@ -431,17 +441,18 @@ export default {
         apiService.getAuthenication(this.formData.ts, this.formData.te)
       ];
 
-      let exectionPromiseArray = selection.map(d => {
-        return promiseArray[d];
-      });
+      // let exectionPromiseArray = selection.map(d => {
+      //   return promiseArray[d];
+      // });
       let exectionPromiseArray = [];
 
-      selection.forEach(function(d){
+      this.formData.content.forEach(function(d){
+        
         exectionPromiseArray.push(promiseArray[d]);
       });
+      console.log(exectionPromiseArray);
       
-
-
+      
       Promise.all(
                   exectionPromiseArray
                   //[
@@ -476,12 +487,17 @@ export default {
         // ===========================
         // console.log(this.getTimestamp(this.ts));
         // console.log(this.getTimestamp(this.te));
+        console.log(values);
+        
         let data = values[0].data;
+        console.log(data);
         this.generatePDFPage(doc, data, 'user', 'risk', true, false);
         // ==========================
         // top risky controllers page
         // ==========================
         data = values[1].data;
+        console.log(data);
+        
         this.generatePDFPage(doc, data, 'controller', 'risk', true, false);
         // =============================
         // top accessed controllers page
@@ -540,5 +556,15 @@ export default {
 </script>
 
 <style>
+p {
+  color: red;
+  font-size: 10px;
+}
 
+.pShow {
+  visibility: visible;
+}
+.pHidden {
+  visibility: hidden;
+}
 </style>

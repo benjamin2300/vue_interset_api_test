@@ -27,58 +27,76 @@
               <el-radio label="custom">客製化時間</el-radio>
             </el-radio-group>
           </el-form-item>
-          <el-form-item>
-            <el-form-item label="時間範圍">
-              <div style="display:inline-block; margin-left:40px;">
-              <el-date-picker
-              v-model="formData.year"
-              type="year"
-              placeholder="選擇年"
-              v-if='formData.formType === "year"'>
-              </el-date-picker>
-              <el-date-picker
-              v-model="formData.month"
-              type="month"
-              placeholder="選擇月"
-              v-if='formData.formType === "month"'>
-              </el-date-picker>
-              <el-date-picker
-              style="margin-right:25px;"
-              v-model="formData.season_year"
-              type="year"
-              placeholder="選擇年"
-              v-if='formData.formType === "season"'>
-              </el-date-picker>
-              <el-dropdown v-if='formData.formType === "season"'>
-                <el-button type="primary">
-                  選擇季度<i class="el-icon-arrow-down el-icon--right"></i>
-                </el-button>
-                <el-dropdown-menu slot="dropdown">
-                  <el-dropdown-item>Q1(1月～3月)</el-dropdown-item>
-                  <el-dropdown-item>Q2(4月～6月)</el-dropdown-item>
-                  <el-dropdown-item>Q3(7月～9月)</el-dropdown-item>
-                  <el-dropdown-item>Q4(10月～12月)</el-dropdown-item>
-                </el-dropdown-menu>
-              </el-dropdown>
-              <el-date-picker
-                v-model="formData.daterange"
-                v-if='formData.formType === "custom"'
-                type="daterange"
-                range-separator="至"
-                start-placeholder="开始日期"
-                end-placeholder="结束日期"
-                unlink-panels>
-              </el-date-picker>
-              </div>
-
-
-            </el-form-item>
+          <el-form-item label="時間範圍">
+            <div style="display:inline-block; margin-left:40px;">
+            <el-date-picker
+            v-model="formData.year"
+            type="year"
+            placeholder="選擇年"
+            v-show='formData.formType === "year"'>
+            </el-date-picker>
+            <el-date-picker
+            v-model="formData.month"
+            type="month"
+            placeholder="選擇月"
+            v-show='formData.formType === "month"'>
+            </el-date-picker>
+            <el-date-picker
+            style="margin-right:25px;"
+            v-model="formData.season_year"
+            type="year"
+            placeholder="選擇年"
+            v-show='formData.formType === "season"'>
+            </el-date-picker>
+            <el-dropdown v-if='formData.formType === "season"'>
+              <el-button type="primary">
+                選擇季度<i class="el-icon-arrow-down el-icon--right"></i>
+              </el-button>
+              <el-dropdown-menu slot="dropdown">
+                <el-dropdown-item>Q1(1月～3月)</el-dropdown-item>
+                <el-dropdown-item>Q2(4月～6月)</el-dropdown-item>
+                <el-dropdown-item>Q3(7月～9月)</el-dropdown-item>
+                <el-dropdown-item>Q4(10月～12月)</el-dropdown-item>
+              </el-dropdown-menu>
+            </el-dropdown>
+            <el-date-picker
+              v-model="formData.daterange"
+              v-show='formData.formType === "custom"'
+              type="daterange"
+              range-separator="至"
+              start-placeholder="开始日期"
+              end-placeholder="结束日期"
+              unlink-panels>
+            </el-date-picker>
+            </div>
           </el-form-item>
+
+          <div class="transfer-div">
+            <div class="transfer-label"><span>選擇內容</span></div>
+            <div class="transfer-body">
+              <el-transfer 
+                v-model="formData.content" 
+                :data="transferData"
+                :titles="['可選擇項目', '已選擇的項目']" 
+                :format="{
+                  noChecked: '${total}',
+                  hasChecked: '${checked}/${total}'
+                }"
+                :left-default-checked="[1,2,3,4,5,6]"
+                >
+              </el-transfer>
+            </div>
+          </div>
+          
+          <div class="pdf-generate-button-div">
+            <PDFGenerator :formData="formData" />
+          </div>
+          
 
         </el-form>
       </div>
 
-      <PDFGenerator :formData="formData" />
+      
       <!-- <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
         <el-button @click="pdfGenerate" type="primary" icon="el-icon-files" circle></el-button>
       </el-tooltip> -->
@@ -109,10 +127,22 @@ export default {
     PDFGenerator
   },
   data(){
+    const generateTransferData = _ => {
+      const data = [];
+      const content_data = ["整體風險值", "使用者", "控制器", "專案", "資源", "分享資源"]
+      for (let i = 1; i <= content_data.length; i++) {
+        data.push({
+          key: i,
+          label: content_data[i-1]
+        });
+      }
+      return data;
+    };
     return{
       // interset_data: [],
       // ts: "",
       // te: "",
+      transferData: generateTransferData(),
       formData: {
         formType: "year",
         year:"",
@@ -121,7 +151,8 @@ export default {
         season_q:"",
         daterange:"",
         ts: "",
-        te: ""
+        te: "",
+        content: []
       },
       body: "",
     };
@@ -1003,6 +1034,9 @@ export default {
   //     return datetime.getTime();
   //   }
   // }
+  },
+  mounted(){
+    $(".el-transfer-panel__empty").text("無資料");
   }
 }
 </script>
@@ -1025,7 +1059,7 @@ export default {
   .el-main {
     background-color: #E9EEF3;
     color: #333;
-    line-height: 160px;
+    /* line-height: 160px; */
   }
 
   /* .el-form-item {
@@ -1034,8 +1068,8 @@ export default {
   } */
 
   #form-div{
-    width: 500px;
-    height: 400px;
+    width: 700px;
+    height: 500px;
     margin: 30px auto;
     padding: 10px;
     border: 3px solid lightgray;
@@ -1079,12 +1113,25 @@ export default {
   } 
 
   .report-type {
-    display: flex;
+    display: flex-start;
     justify-content: center;
-    margin-top: 14px;
+    /* margin-top: 14px; */
+    margin-left: 40px;
   }
 
   .date-picker {
     margin-left: 40px;
+  }
+  .transfer-label {
+    display: inline-block;
+  }
+  .transfer-body {
+    display: inline-block;
+    margin-left: 40px;
+  }
+
+  .pdf-generate-button-div {
+    text-align: left;
+    margin-top: 30px;
   }
 </style>
