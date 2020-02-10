@@ -48,7 +48,7 @@
             placeholder="選擇年"
             v-show='formData.formType === "season"'>
             </el-date-picker>
-            <el-dropdown v-if='formData.formType === "season"'>
+            <el-dropdown v-show='formData.formType === "season"'>
               <el-button type="primary">
                 選擇季度<i class="el-icon-arrow-down el-icon--right"></i>
               </el-button>
@@ -66,11 +66,11 @@
               range-separator="至"
               start-placeholder="开始日期"
               end-placeholder="结束日期"
-              unlink-panels>
+              >
             </el-date-picker>
             </div>
           </el-form-item>
-
+          
           <div class="transfer-div">
             <div class="transfer-label"><span>選擇內容</span></div>
             <div class="transfer-body">
@@ -86,7 +86,7 @@
                 >
               </el-transfer>
             </div>
-          </div>
+          </div> 
           
           <div class="pdf-generate-button-div">
             <PDFGenerator :formData="formData" />
@@ -1122,13 +1122,16 @@ export default {
   .date-picker {
     margin-left: 40px;
   }
+  /* .transfer-div{
+    display:flex;
+  } */
   .transfer-label {
     display: inline-block;
   }
   .transfer-body {
     display: inline-block;
     margin-left: 40px;
-  }
+  } 
 
   .pdf-generate-button-div {
     text-align: left;
