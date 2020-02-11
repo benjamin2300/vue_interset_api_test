@@ -35,7 +35,7 @@ export class APIService {
     }
     const response = await axios.get(url);
     // console.log(response);
-    return response;
+    return response.data;
   }
 
 
@@ -100,6 +100,8 @@ export class APIService {
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
+    // console.log(url);
+    
     const response = await axios.get(url);
     return response.data;
   }

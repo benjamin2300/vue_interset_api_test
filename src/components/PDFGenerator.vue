@@ -20,12 +20,14 @@ export default {
   data(){
     return {
       noData: false,
+      ts: "",
+      te: ""
     }
   },
   props: {
     formData: {
       type: Object
-    }
+    },
   },
   methods: {
     generatePDFRiskPage(doc, data){
@@ -39,8 +41,8 @@ export default {
 
       $('#chart').empty();
       $('#canvas').empty();
-      // 
-      let time_format = d3.timeFormat('%Y/%m/%d');
+      
+      let time_format = d3.timeFormat('%m/%d');
       let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
       data = data.map(function(d){ return {date: time_parse(d.timestampStr), risk: d.risk};});
       data.pop();
@@ -77,6 +79,13 @@ export default {
           .attr("width", chart_width)
           .attr("height", chart_height);
       
+      // let x_axis = d3.axisBottom(x_scale);
+      // if(this.formData.formType == "year"){
+      //   let time_format = d3.timeFormat('%m月');
+      //   x_axis.ticks(12)
+      //     .tickFormat(time_format);
+          
+      // }
       let x_axis = d3.axisBottom(x_scale)
           .ticks(5)
           .tickFormat(time_format);
@@ -88,6 +97,11 @@ export default {
           .style('color', 'black')
           .attr("transform", "translate(0, " + (chart_height - margin.bottom) + ")")
           .call(x_axis);
+          // .selectAll("text")
+          // .style("text-anchor", "end")
+          // .attr("dx", "-.8em")
+          // .attr("dy", "-.55em")
+          // .attr("transform", "rotate(-90)");
       
       svg.append("g")
           .style('color', 'black')
@@ -396,160 +410,233 @@ export default {
     pdfGenerate(){
       
       if(this.formData.content.length == 0){
-        this.noData = !this.noData;
+        this.noData = true;
       } else {
+        this.noData = false;
         // console.log("test");
         // 1st Page
         var doc = new jsPDF();
         doc.setFont('msyh');
-
-        // this.getTopRiskyUsers(this.getTimestamp(this.ts), this.getTimestamp(this.te));
-        
-        
-        // console.log(this.interset_data);
         let month = [1,2,3,4,5,6,7,8,9,10,11,12]
         
         doc.setFontSize(24);
         doc.text('Interset總體報表', 70, 150);
-        doc.setFontSize(10);
-        console.log(this.formData);
-        this.formData.ts = this.formData.daterange[0]
-        this.formData.te = this.formData.daterange[1]
+        
+        if(this.formData.formType == "year"){
+          doc.setFontSize(20);
+          doc.text(this.formData.year.getFullYear() + "年報", 85, 160);
+        }else if(this.formData.formType == "season"){
+          doc.setFontSize(20);
+          let t = this.formData.season_year.getFullYear();
+          if(this.formData.season_q == "Q1"){
+            t += "(" + "Q1" + ")";
+          }else if(this.formData.season_q == "Q2"){
+            t += "(" + "Q2" + ")";
+          }else if(this.formData.season_q == "Q3"){
+            t += "(" + "Q3" + ")";
+          }else if(this.formData.season_q == "Q4"){
+            t += "(" + "Q4" + ")";
+          }
+          doc.text(t + "月報", 80, 160);
+        } else if(this.formData.formType == "month"){
+          console.log(this.formData.formType);
+          
+          doc.setFontSize(20);
+          let t = this.formData.month.getFullYear();
+          t += "/" + (this.formData.month.getMonth()+1) + "月";
+          doc.text(t + "月報", 80, 160);
+        }
 
-        let new_ts = new Date(this.formData.ts);
-        let new_te = new Date(this.formData.te);
+
+
+        doc.setFontSize(10);
+        // console.log(this.formData);
+
+        if(this.formData.formType == "year"){
+          this.ts = this.formData.year;
+          this.te = new Date(this.ts.getFullYear()+1, 0, 1);
+        }else if(this.formData.formType == "season"){
+          let year = this.formData.season_year;
+          if(this.formData.season_q == "Q1"){
+            this.ts = new Date(year.getFullYear(), 0, 1);
+            this.te = new Date(year.getFullYear(), 3, 1);
+          }else if(this.formData.season_q == "Q2"){
+            this.ts = new Date(year.getFullYear(), 3, 1);
+            this.te = new Date(year.getFullYear(), 6, 1);
+          }else if(this.formData.season_q == "Q3"){
+            this.ts = new Date(year.getFullYear(), 6, 1);
+            this.te = new Date(year.getFullYear(), 9, 1);
+          }else if(this.formData.season_q == "Q4"){
+            this.ts = new Date(year.getFullYear(), 9, 1);
+            this.te = new Date(year.getFullYear()+1, 1, 1);
+          }
+        }else if(this.formData.formType == "month"){
+          let month = this.formData.month;
+          this.ts = new Date(month.getFullYear(), month.getMonth(), 1);
+          this.te = new Date(month.getFullYear(), month.getMonth()+1, 1);
+
+        }else if(this.formData.formType == "custom"){
+          this.ts = this.formData.daterange[0];
+          this.te = this.formData.daterange[1];
+        }
+        // console.log(this.ts);
+        // console.log(this.te);
+        
+        
+        this.ts = this.ts.getTime();
+        this.te = this.te.getTime();
+
+        let new_ts = new Date(this.ts);
+        let new_te = new Date(this.te);
 
         let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
                         + " 到 " + 
                         new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate(); 
-        doc.text(date_range, 80, 160);
+        doc.text(date_range, 85, 170);
+        // 2nd Page After
+        // console.log(this.ts);
+        let selection = this.formData.content.slice();
+        let promiseArray = [
+          apiService.getTopRiskyUsers(this.ts, this.te),
+          apiService.getTopRiskyControllers(this.ts, this.te),
+          apiService.getTopAccessedControllers(this.ts, this.te),
+          apiService.getTopRiskyProjects(this.ts, this.te),
+          apiService.getTopAccessedProjects(this.ts, this.te),
+          apiService.getTopRiskyResources(this.ts, this.te),
+          apiService.getTopAccessedResources(this.ts, this.te),
+          apiService.getTopRiskyShares(this.ts, this.te),
+          apiService.getTopAccessedShares(this.ts, this.te),
+          apiService.getRiskGraph(this.ts, this.te),
+          apiService.getAuthenication(this.ts, this.te)
+        ];
+        // let exectionPromiseArray = selection.map(d => {
+        //   return promiseArray[d];
+        // });
+        let exectionPromiseArray = [];
+        let pdf_map = {}
+        let pdf_counter = 0;
+
+        selection.forEach(function(d){
+          if(d == 0){
+            // user
+            exectionPromiseArray.push(promiseArray[0]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 1 || d == 2 || d == 3 || d == 4 ){
+            // controller, project, resource, share
+            exectionPromiseArray.push(promiseArray[2*d-1]);
+            exectionPromiseArray.push(promiseArray[2*d]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 2;
+          }else if(d == 11){
+            // risk graph
+            exectionPromiseArray.push(promiseArray[9]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 12){
+            // authication
+            exectionPromiseArray.push(promiseArray[10]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }
+        });
+        // console.log(pdf_map);
+        // console.log(selection);
+        
+                // get data, promise geting all data and generate pdf
+        Promise.all(
+                    exectionPromiseArray
+                    )           
+              .then((values) =>   
+        {
+          let selection_count = selection.length;
+          for (let i=0; i<selection_count; i++){
+            if(selection.includes(11)){
+              // ==========================
+              // risk graph page
+              // ==========================
+              let data = values[pdf_map[11]].data;
+              this.generatePDFRiskPage(doc, data);
+              selection = this.removeFromSelection(selection, 11);
+            } else if(selection.includes(0)){
+              // ===========================
+              // top risky user page
+              // ===========================
+              let data = values[pdf_map[0]].data;
+    
+              this.generatePDFPage(doc, data, 'user', 'risk', true, false);
+              selection = this.removeFromSelection(selection, 0);
+              
+            } else if(selection.includes(1)){
+              // ==========================
+              // top risky controllers page
+              // ==========================
+              let data = values[pdf_map[1]].data;
+
+              this.generatePDFPage(doc, data, 'controller', 'risk', true, false);
+              // =============================
+              // top accessed controllers page
+              // =============================
+              data = values[pdf_map[1] + 1];
+              this.generatePDFPage(doc, data, 'controller', 'access', true, true);
+              selection = this.removeFromSelection(selection, 1);
+            } else if(selection.includes(2)){
+              // ==========================
+              // top risky projects page
+              // ==========================
+              let data = values[pdf_map[2]].data;
+
+              this.generatePDFPage(doc, data, 'project', 'risk', true, false);
+              // =============================
+              // top accessed projects page
+              // =============================
+              data = values[pdf_map[2] + 1];
+              this.generatePDFPage(doc, data, 'project', 'access', true, true);
+              selection = this.removeFromSelection(selection, 2);
+            } else if(selection.includes(3)){
+              // ==========================
+              // top risky resources page
+              // ==========================
+              let data = values[pdf_map[3]].data;
+              
+              this.generatePDFPage(doc, data, 'resource', 'risk', true, false);
+              // =============================
+              // top accessed resources page
+              // =============================
+              data = values[pdf_map[3] + 1];
+              this.generatePDFPage(doc, data, 'resource', 'access', true, true);
+              selection = this.removeFromSelection(selection, 3);
+            } else if(selection.includes(4)){
+              // ==========================
+              // top risky share page
+              // ==========================
+              let data = values[pdf_map[4]].data;
+              
+              this.generatePDFPage(doc, data, 'share', 'risk', true, false);
+              // =============================
+              // top accessed share page
+              // =============================
+              data = values[pdf_map[4] + 1];
+              this.generatePDFPage(doc, data, 'share', 'access', true, true);
+              selection = this.removeFromSelection(selection, 4);
+            } else if(selection.includes(12)){
+              // ==========================
+              // authenication page
+              // ==========================
+              let data = values[pdf_map[12]].data;
+              // console.log(data);
+              this.generatePDFAuthenicationPage(doc, data);
+              selection = this.removeFromSelection(selection, 12);
+            }
+          }
+          doc.save('test.pdf');
+        });
       }
-
-      // 2nd Page
-      // console.log(this.ts);
-      let promiseArray = [
-        apiService.getTopRiskyUsers(this.formData.ts, this.formData.te),
-        apiService.getTopRiskyControllers(this.formData.ts, this.formData.te),
-        apiService.getTopAccessedControllers(this.formData.ts, this.formData.te),
-        apiService.getTopRiskyProjects(this.formData.ts, this.formData.te),
-        apiService.getTopAccessedProjects(this.formData.ts, this.formData.te),
-        apiService.getTopRiskyResources(this.formData.ts, this.formData.te),
-        apiService.getTopAccessedResources(this.formData.ts, this.formData.te),
-        apiService.getTopRiskyShares(this.formData.ts, this.formData.te),
-        apiService.getTopAccessedShares(this.formData.ts, this.formData.te),
-        apiService.getRiskGraph(this.formData.ts, this.formData.te),
-        apiService.getAuthenication(this.formData.ts, this.formData.te)
-      ];
-
-      // let exectionPromiseArray = selection.map(d => {
-      //   return promiseArray[d];
-      // });
-      let exectionPromiseArray = [];
-
-      this.formData.content.forEach(function(d){
-        
-        exectionPromiseArray.push(promiseArray[d]);
-      });
-      console.log(exectionPromiseArray);
-      
-      
-      Promise.all(
-                  exectionPromiseArray
-                  //[
-                  // apiService.getTopRiskyUsers(this.formData.ts, this.formData.te),
-                  // apiService.getTopRiskyControllers(this.formData.ts, this.formData.te),
-                  // apiService.getTopAccessedControllers(this.formData.ts, this.formData.te),
-                  // apiService.getTopRiskyProjects(this.formData.ts, this.formData.te),
-                  // apiService.getTopAccessedProjects(this.formData.ts, this.formData.te),
-                  // apiService.getTopRiskyResources(this.formData.ts, this.formData.te),
-                  // apiService.getTopAccessedResources(this.formData.ts, this.formData.te),
-                  // apiService.getTopRiskyShares(this.formData.ts, this.formData.te),
-                  // apiService.getTopAccessedShares(this.formData.ts, this.formData.te),
-                  // apiService.getRiskGraph(this.formData.ts, this.formData.te),
-                  // apiService.getAuthenication(this.formData.ts, this.formData.te)
-                  //  this.getTopRiskyUsers(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopRiskyControllers(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopAccessedControllers(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopRiskyProjects(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopAccessedProjects(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopRiskyResources(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopAccessedResources(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopRiskyShares(this.ts.getTime(), this.te.getTime()),
-                  //  this.getTopAccessedShares(this.ts.getTime(), this.te.getTime()),
-                  //  this.getRiskGraph(this.ts.getTime(), this.te.getTime()),
-                  //  this.getAuthenication(this.ts.getTime(), this.te.getTime()),
-                   //])
-                  )           
-             .then((values) =>   
-      {
-        // ===========================
-        // top risky user page
-        // ===========================
-        // console.log(this.getTimestamp(this.ts));
-        // console.log(this.getTimestamp(this.te));
-        console.log(values);
-        
-        let data = values[0].data;
-        console.log(data);
-        this.generatePDFPage(doc, data, 'user', 'risk', true, false);
-        // ==========================
-        // top risky controllers page
-        // ==========================
-        data = values[1].data;
-        console.log(data);
-        
-        this.generatePDFPage(doc, data, 'controller', 'risk', true, false);
-        // =============================
-        // top accessed controllers page
-        // =============================
-        data = values[2];
-        this.generatePDFPage(doc, data, 'controller', 'access', true, true);
-        // ========================
-        // top risky projects page
-        // ========================
-        data = values[3].data;
-        this.generatePDFPage(doc, data, 'project', 'risk', true, false);
-        // ==========================
-        // top accessed projects page
-        // ==========================
-        data = values[4];
-        this.generatePDFPage(doc, data, 'project', 'access', true, true);
-        // ========================
-        // top risky resources page
-        // ========================
-        data = values[5].data;
-        this.generatePDFPage(doc, data, "resource", "risk", true, false);
-        // ==========================
-        // top accessed projects page
-        // ==========================
-        data = values[6];
-        this.generatePDFPage(doc, data, "resource", "access", true, true);
-        // ========================
-        // top risky shares page
-        // ========================
-        data = values[7].data;
-        this.generatePDFPage(doc, data, "share", "risk", true, false);
-        // ==========================
-        // top accessed shares page
-        // ==========================
-        data = values[8];
-        this.generatePDFPage(doc, data, "share", "access", true, true);
-        // ==========================
-        // risk graph page
-        // ==========================
-        data = values[9].data;
-        this.generatePDFRiskPage(doc, data);
-        // ==========================
-        // authenication page
-        // ==========================
-        data = values[10].data;
-        // console.log(data);
-        this.generatePDFAuthenicationPage(doc, data);
-        // this.generatePDFRiskPage(doc, data);
-        
-
-        doc.save('test.pdf');
-      });
+    },
+    removeFromSelection(selection, data_type){
+      let d_index = selection.indexOf(data_type);
+      selection.splice(d_index, 1);
+      return selection;
     }
   }
 }
