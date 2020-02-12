@@ -91,7 +91,7 @@
                   noChecked: '${total}',
                   hasChecked: '${checked}/${total}'
                 }"
-                :left-default-checked="[0,1,2,3,4,5,11,12]"
+                :left-default-checked="[0,1,2,3,4,5,11,12,13]"
                 >
               </el-transfer>
             </div>
@@ -145,7 +145,7 @@ export default {
           label: data_type[i]
         });
       }
-      const other_data = ["整體風險值", "登入成功/失敗"]
+      const other_data = ["整體風險值", "登入成功/失敗", "日工作時數分布"]
       for(let i=0; i<other_data.length; i++){
         data.push({
           key: 11 + i,

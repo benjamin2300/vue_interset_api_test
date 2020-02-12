@@ -38,6 +38,17 @@ export class APIService {
     return response.data;
   }
 
+  async getWorkingHoursDaily() {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/workingHours/daily`;
+    const response = await axios.get(url);
+    // console.log(response);
+    return response.data;
+  }
+
+
+
 
   // get top risky users
   async getTopRiskyUsers(ts, te) {

@@ -257,6 +257,18 @@ export default {
       doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
       
     },
+    generatePDFWorkingHoursDaily(doc, data){
+      $('#chart').empty();
+      $('#canvas').empty();
+      doc.addPage();
+      doc.setFontSize(24);
+      doc.text("使用者每日平均工作時數", 60, 20);
+
+      let margin = {top: 30, right: 30, bottom: 30, left: 30};
+      let chart_width = 500 ;
+      let chart_height = 500 ;
+
+    },
     generatePDFPage(doc, data, entityName, pageType, table_flag=false, chart_flag=false){
       // get chinese name, title header
       let entityNameChinese = this.entityNameMapping(entityName);
@@ -507,7 +519,8 @@ export default {
           apiService.getTopRiskyShares(this.ts, this.te),
           apiService.getTopAccessedShares(this.ts, this.te),
           apiService.getRiskGraph(this.ts, this.te),
-          apiService.getAuthenication(this.ts, this.te)
+          apiService.getAuthenication(this.ts, this.te),
+          apiService.getWorkingHoursDaily()
         ];
         // let exectionPromiseArray = selection.map(d => {
         //   return promiseArray[d];
@@ -536,6 +549,11 @@ export default {
           }else if(d == 12){
             // authication
             exectionPromiseArray.push(promiseArray[10]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 13){
+            //working hours daily
+            exectionPromiseArray.push(promiseArray[11]);
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }
@@ -627,6 +645,10 @@ export default {
               // console.log(data);
               this.generatePDFAuthenicationPage(doc, data);
               selection = this.removeFromSelection(selection, 12);
+            } else if(selection.includes(13)){
+              let data = values[pdf_map[13]].data;
+              console.log(data);
+              this.generatePDFWorkingHoursDaily(doc, data);
             }
           }
           doc.save('test.pdf');
