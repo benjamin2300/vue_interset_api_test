@@ -1,124 +1,145 @@
 <template>
   <el-container>
     <el-header>Interset報表產生器</el-header>
-    <el-main>
-      <table id="my-table"></table>
-      <!-- <el-date-picker
-        v-model="formData.ts"
-        type="date"
-        placeholder="開始日期"
-        class="ts-date-picker"
-        >
-      </el-date-picker>
-      <el-date-picker
-        v-model="formData.te"
-        type="date"
-        placeholder="結束日期"
-        class="te-date-picker"
-        >
-      </el-date-picker> -->
-      <div id="form-div">
-        <el-form ref="form" :model="formData" >
-          <el-form-item label="報表種類" prop="type">
-            <el-radio-group class="report-type" v-model="formData.formType">
-              <el-radio label="year">年報</el-radio>
-              <el-radio label="season">季報</el-radio>
-              <el-radio label="month">月報</el-radio>
-              <el-radio label="custom">客製化時間</el-radio>
-            </el-radio-group>
-          </el-form-item>
-          <el-form-item label="時間範圍">
-            <div style="display:inline-block; margin-left:40px;">
-            <el-date-picker
-            v-model="formData.year"
-            type="year"
-            placeholder="選擇年"
-            v-show='formData.formType === "year"'>
-            </el-date-picker>
-            <el-date-picker
-            v-model="formData.month"
-            type="month"
-            placeholder="選擇月"
-            v-show='formData.formType === "month"'>
-            </el-date-picker>
-            <el-date-picker
-            style="margin-right:25px;"
-            v-model="formData.season_year"
-            type="year"
-            placeholder="選擇年"
-            v-show='formData.formType === "season"'>
-            </el-date-picker>
-            <!-- <el-dropdown v-show='formData.formType === "season"'>
-              <el-button type="primary">
-                選擇季度<i class="el-icon-arrow-down el-icon--right"></i>
-              </el-button>
-              <el-dropdown-menu slot="dropdown">
-                <el-dropdown-item>Q1(1月～3月)</el-dropdown-item>
-                <el-dropdown-item>Q2(4月～6月)</el-dropdown-item>
-                <el-dropdown-item>Q3(7月～9月)</el-dropdown-item>
-                <el-dropdown-item>Q4(10月～12月)</el-dropdown-item>
-              </el-dropdown-menu>
-            </el-dropdown> -->
-            <el-select v-show='formData.formType === "season"' v-model="formData.season_q" placeholder="请选择" class="season-q-select">
-              <el-option
-                v-for="item in options"
-                :key="item.value"
-                :label="item.label"
-                :value="item.value">
-              </el-option>
-            </el-select>
-            <el-date-picker
-              v-model="formData.daterange"
-              v-show='formData.formType === "custom"'
-              type="daterange"
-              range-separator="至"
-              start-placeholder="开始日期"
-              end-placeholder="结束日期"
-              unlink-panels
-              >
-            </el-date-picker>
-            </div>
-          </el-form-item>
-          
-          <div class="transfer-div">
-            <div class="transfer-label"><span>選擇內容</span></div>
-            <div class="transfer-body">
-              <el-transfer 
-                v-model="formData.content" 
-                :data="formData.transferData"
-                :titles="['可選擇項目', '已選擇的項目']" 
-                :format="{
-                  noChecked: '${total}',
-                  hasChecked: '${checked}/${total}'
-                }"
-                :left-default-checked="[0,1,2,3,4,5,11,12,13]"
+    <el-container>
+      <el-aside width="200px">
+        <el-menu :default-openeds="['1']">
+          <el-submenu index="1">
+            <template slot="title"><i class="el-icon-message"></i>報表產生</template>
+            <el-menu-item-group>
+              <el-menu-item index="1-1">總體報表</el-menu-item>
+              <el-menu-item index="1-2">單一使用者報表</el-menu-item>
+              <el-menu-item index="1-3">多個使用者報表</el-menu-item>
+            </el-menu-item-group>
+          </el-submenu>
+          <el-menu-item-group>
+            <el-menu-item index="2">
+              <i class="el-icon-menu"></i>
+              <span slot="title">調修建議</span>
+            </el-menu-item>
+          </el-menu-item-group>
+        </el-menu>
+      </el-aside>
+      <el-main>
+        <table id="my-table"></table>
+        <!-- <el-date-picker
+          v-model="formData.ts"
+          type="date"
+          placeholder="開始日期"
+          class="ts-date-picker"
+          >
+        </el-date-picker>
+        <el-date-picker
+          v-model="formData.te"
+          type="date"
+          placeholder="結束日期"
+          class="te-date-picker"
+          >
+        </el-date-picker> -->
+        <div id="form-div">
+          <el-form ref="form" :model="formData" >
+            <el-form-item label="報表種類" prop="type">
+              <el-radio-group class="report-type" v-model="formData.formType">
+                <el-radio label="year">年報</el-radio>
+                <el-radio label="season">季報</el-radio>
+                <el-radio label="month">月報</el-radio>
+                <el-radio label="custom">客製化時間</el-radio>
+              </el-radio-group>
+            </el-form-item>
+            <el-form-item label="時間範圍">
+              <div style="display:inline-block; margin-left:40px;">
+              <el-date-picker
+              v-model="formData.year"
+              type="year"
+              placeholder="選擇年"
+              v-show='formData.formType === "year"'>
+              </el-date-picker>
+              <el-date-picker
+              v-model="formData.month"
+              type="month"
+              placeholder="選擇月"
+              v-show='formData.formType === "month"'>
+              </el-date-picker>
+              <el-date-picker
+              style="margin-right:25px;"
+              v-model="formData.season_year"
+              type="year"
+              placeholder="選擇年"
+              v-show='formData.formType === "season"'>
+              </el-date-picker>
+              <!-- <el-dropdown v-show='formData.formType === "season"'>
+                <el-button type="primary">
+                  選擇季度<i class="el-icon-arrow-down el-icon--right"></i>
+                </el-button>
+                <el-dropdown-menu slot="dropdown">
+                  <el-dropdown-item>Q1(1月～3月)</el-dropdown-item>
+                  <el-dropdown-item>Q2(4月～6月)</el-dropdown-item>
+                  <el-dropdown-item>Q3(7月～9月)</el-dropdown-item>
+                  <el-dropdown-item>Q4(10月～12月)</el-dropdown-item>
+                </el-dropdown-menu>
+              </el-dropdown> -->
+              <el-select v-show='formData.formType === "season"' v-model="formData.season_q" placeholder="请选择" class="season-q-select">
+                <el-option
+                  v-for="item in options"
+                  :key="item.value"
+                  :label="item.label"
+                  :value="item.value">
+                </el-option>
+              </el-select>
+              <el-date-picker
+                v-model="formData.daterange"
+                v-show='formData.formType === "custom"'
+                type="daterange"
+                range-separator="至"
+                start-placeholder="开始日期"
+                end-placeholder="结束日期"
+                unlink-panels
                 >
-              </el-transfer>
+              </el-date-picker>
+              </div>
+            </el-form-item>
+            
+            <div class="transfer-div">
+              <div class="transfer-label"><span>選擇內容</span></div>
+              <div class="transfer-body">
+                <el-transfer 
+                  v-model="formData.content" 
+                  :data="formData.transferData"
+                  :titles="['可選擇項目', '已選擇的項目']" 
+                  :format="{
+                    noChecked: '${total}',
+                    hasChecked: '${checked}/${total}'
+                  }"
+                  :left-default-checked="[0,1,2,3,4,5,11,12,13]"
+                  >
+                </el-transfer>
+              </div>
+            </div> 
+            
+            <div class="pdf-generate-button-div">
+              <PDFGenerator :formData="formData" />
             </div>
-          </div> 
-          
-          <div class="pdf-generate-button-div">
-            <PDFGenerator :formData="formData" />
-          </div>
-          
+            
 
-        </el-form>
-      </div>
+          </el-form>
+        </div>
 
-      
-      <!-- <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
-        <el-button @click="pdfGenerate" type="primary" icon="el-icon-files" circle></el-button>
-      </el-tooltip> -->
+        
+        <!-- <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
+          <el-button @click="pdfGenerate" type="primary" icon="el-icon-files" circle></el-button>
+        </el-tooltip> -->
 
 
-      <!-- <el-tooltip effect="dark" content="html報表產生" placement="top-start">
-        <el-button @click="htmlGenerate" type="primary" icon="el-icon-files" circle></el-button>
-      </el-tooltip> -->
-      
-      <div id="chart"></div>
-      <div id="div-canvas"><canvas id="canvas" width="500" height="500"></canvas></div>
-      
-    </el-main>
+        <!-- <el-tooltip effect="dark" content="html報表產生" placement="top-start">
+          <el-button @click="htmlGenerate" type="primary" icon="el-icon-files" circle></el-button>
+        </el-tooltip> -->
+        
+        <div id="chart"></div>
+        <div id="div-canvas"><canvas id="canvas" width="500" height="500"></canvas></div>
+        
+      </el-main>
+    </el-container>
+
 </el-container>
 </template>
 
@@ -576,8 +597,6 @@ export default {
   .el-aside {
     background-color: #D3DCE6;
     color: #333;
-    text-align: center;
-    line-height: 200px;
   }
   
   .el-main {
