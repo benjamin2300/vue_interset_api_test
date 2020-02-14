@@ -2,6 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 import Home from '@/views/Home'
 import Login from '@/views/Login'
+// import OrganizationReportForm from '@/components/OrganizationReportForm'
 // import Home from '../views/Home.vue'
 // import IntersetReporting from '@/views/IntersetReporting'
 // import PDFGenerator from '@/components/PDFGenerator'
@@ -12,7 +13,27 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    component: Home
+    component: () => import('../views/Home'),
+    children: [
+      {
+        path: "/report/organization",
+        name: "organizationReportForm",
+        component: () => import("@/components/OrganizationReportForm"),
+        meta: {title: "總體報表"}
+      },
+      {
+        path: "/report/single-user",
+        name: "singleReportForm",
+        component: () => import("@/components/SingleUserReportForm"),
+        meta: {title: "單一使用者報表"}
+      }, 
+      {
+        path: "/report/multi-user",
+        name: "multiUserReportForm",
+        component: () => import("@/components/MultiUserReportForm"),
+        meta: {title: "多名使用者報表"}
+      }
+    ]
   },
   {
     path: '/login',
