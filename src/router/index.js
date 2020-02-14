@@ -1,7 +1,9 @@
 import Vue from 'vue'
 import VueRouter from 'vue-router'
-import Home from '../views/Home.vue'
-import IntersetReporting from '@/views/IntersetReporting'
+import Home from '@/views/Home'
+import Login from '@/views/Login'
+// import Home from '../views/Home.vue'
+// import IntersetReporting from '@/views/IntersetReporting'
 // import PDFGenerator from '@/components/PDFGenerator'
 
 Vue.use(VueRouter)
@@ -13,9 +15,9 @@ const routes = [
     component: Home
   },
   {
-    path: '/reporting',
-    name: 'intersetReporting',
-    component: IntersetReporting
+    path: '/login',
+    name: 'login',
+    component: Login
   }
   // {
   //   path: '/about',
