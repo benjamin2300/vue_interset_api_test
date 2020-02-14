@@ -499,16 +499,11 @@ export default {
     background-color: #263445;
   }
 
-  /* .el-submenu__title:hover {
-    background-color: red !important;
-  } */
 
   .el-menu-item:hover {
     background-color: #223449;
   }
-  .el-submenu__title:hover {
-      background-color: red !important;
-  }
+
 
 
   /* .el-form-item {
@@ -580,5 +575,11 @@ export default {
   }
   .season-q-select {
     /* width: 30px; */
+  }
+</style>
+
+<style>
+  .el-submenu__title:hover {
+    background-color: red;
   }
 </style>
