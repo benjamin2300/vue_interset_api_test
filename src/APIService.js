@@ -5,6 +5,13 @@ export class APIService {
   constructor(){
     
   }
+
+  async getAllUsersList() {
+    
+  }
+
+
+
   async getUsers() {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;

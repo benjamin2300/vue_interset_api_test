@@ -1,5 +1,5 @@
 <template>
-    <div id="form-div">
+    <div class="form-div">
     <el-form ref="form" :model="formData" >
       <el-form-item label="報表種類" prop="type">
         <el-radio-group class="report-type" v-model="formData.formType">
@@ -146,4 +146,23 @@ export default {
     display: inline-block;
     margin-left: 40px;
   } 
+  .report-type {
+    display: flex-start;
+    justify-content: center;
+    /* margin-top: 14px; */
+    margin-left: 40px;
+  }
+  .form-div{
+    width: 700px;
+    height: 500px;
+    margin: 20px;
+    padding: 10px;
+    border: 3px solid lightgray;
+    border-radius: 10px;
+    padding-top: 25px;
+    padding-bottom: 25px;
+    padding-right: 40px;
+    padding-left: 20px;
+    /* font-family: Arial, "新細明體"; */
+  }
 </style>

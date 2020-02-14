@@ -2,18 +2,32 @@
   <el-container>
     <el-header>Interset報表產生器</el-header>
     <el-container>
-      <el-aside width="200px">
-        <el-menu :default-openeds="['1']">
+      <el-aside width="220px">
+        <el-menu 
+          router 
+          :default-active="$route.path" 
+          :default-openeds="['1']"
+          text-color="#fff"
+          >
           <el-submenu index="1">
             <template slot="title"><i class="el-icon-message"></i>報表產生</template>
-            <el-menu-item-group v-for="menuItem in menuList" :key="menuItem.name">
+            <el-menu-item index="/report/organization">
+              <i class="el-icon-school"></i><span>總體報表</span>
+            </el-menu-item>
+            <el-menu-item index="/report/single-user">
+              <i class="el-icon-user"></i><span>單一使用者報表</span>
+            </el-menu-item>
+            <el-menu-item index="/report/multi-user">
+              <i class="el-icon-user-solid"></i><span>多個使用者報表</span> 
+            </el-menu-item>
+            <!-- <el-menu-item-group v-for="menuItem in menuList" :key="menuItem.name">
               <router-link :to="menuItem.path">
                 <el-menu-item
                 :index="menuItem.name"
                 >
                   <span>{{menuItem.meta.title}}</span>
                 </el-menu-item>
-              </router-link>
+              </router-link> -->
 
               <!-- <el-menu-item index="1-1">總體報表</el-menu-item>
               <el-menu-item index="1-2">單一使用者報表</el-menu-item>
@@ -455,13 +469,13 @@ export default {
   .el-header, .el-footer {
     background-color: #B3C0D1;
     color: #333;
-    text-align: center;
+    text-align: left;
     line-height: 60px;
   }
   
   .el-aside {
-    background-color: #D3DCE6;
-    color: #333;
+    background-color: #304156;
+    /* color:#ffffff; */
   }
   
   .el-main {
@@ -471,15 +485,38 @@ export default {
     /* line-height: 160px; */
   }
 
+  
   .el-menu {
-    background-color: #D3DCE6;
+    background-color: #304156;
+    border-right: none;
   }
+
+  .el-menu-item {
+    background-color: #304156;
+  }
+  
+  .el-submenu > ul .el-menu-item {
+    background-color: #263445;
+  }
+
+  /* .el-submenu__title:hover {
+    background-color: red !important;
+  } */
+
+  .el-menu-item:hover {
+    background-color: #223449;
+  }
+  .el-submenu__title:hover {
+      background-color: red !important;
+  }
+
+
   /* .el-form-item {
     text-align: left;
     float: left;
   } */
 
-  #form-div{
+  /* #form-div{
     width: 700px;
     height: 500px;
     margin: 30px 20px;
@@ -490,8 +527,8 @@ export default {
     padding-bottom: 25px;
     padding-right: 40px;
     padding-left: 20px;
-    /* font-family: Arial, "新細明體"; */
-  }
+    font-family: Arial, "新細明體";
+  } */
   
   body > .el-container {
     margin-bottom: 40px;
