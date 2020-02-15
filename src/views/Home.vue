@@ -481,7 +481,7 @@ export default {
   .el-main {
     background-color: #E9EEF3;
     color: #333;
-    height: 1000px;
+    /* height: 1000px; */
     /* line-height: 160px; */
   }
 
@@ -560,18 +560,12 @@ export default {
   .date-picker {
     margin-left: 40px;
   }
-  /* .transfer-div{
-    display:flex;
-  } */
 
-
-  .pdf-generate-button-div {
+  /* .pdf-generate-button-div {
     text-align: left;
     margin-top: 30px;
-  }
-  .season-q-select {
-    /* width: 30px; */
-  }
+  } */
+
 </style>
 
 <style>

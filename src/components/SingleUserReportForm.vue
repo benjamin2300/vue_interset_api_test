@@ -185,7 +185,7 @@ export default {
   .form-div{
     width: 700px;
     height: 550px;
-    margin: 20px;
+    margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;
     border-radius: 10px;

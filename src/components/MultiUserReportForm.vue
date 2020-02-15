@@ -173,7 +173,7 @@ export default {
         });
       }
       this.allUserList = data;
-      this.userLeftCheck = Array.from(new Array(data.length),(val,index)=>index);
+      // this.userLeftCheck = Array.from(new Array(data.length),(val,index)=>index);
     });
     this.contentLeftCheck = [0,1,2,3,4,5,11,12,13];
     // apiService.getAllUsersList().then((value) => {
@@ -211,7 +211,7 @@ export default {
   .form-div{
     width: 750px;
     height: 800px;
-    margin: 20px;
+    margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;
     border-radius: 10px;
@@ -221,6 +221,8 @@ export default {
     padding-left: 20px;
     /* font-family: Arial, "新細明體"; */
   }
+
+
 </style>
 
 <style>
