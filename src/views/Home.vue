@@ -506,7 +506,7 @@ export default {
   .el-menu-item:hover {
     background-color: #223449;
   }
-  .el-submenu__title:hover {
+  .el-submenu__title[data-v-fae5bece]:hover {
       background-color: red !important;
   }
 
