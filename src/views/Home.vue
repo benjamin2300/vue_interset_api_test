@@ -499,23 +499,14 @@ export default {
     background-color: #263445;
   }
 
-  /* .el-submenu__title:hover {
-    background-color: red !important;
-  } */
+  .el-submenu > ul .el-menu-item:hover {
+    background-color: #1e2a37;
+  }
 
   .el-menu-item:hover {
-    background-color: #223449;
+    background-color: #263445;
   }
-  .el-submenu__title[data-v-fae5bece]:hover {
-      background-color: red !important;
-  }
-
-
-  /* .el-form-item {
-    text-align: left;
-    float: left;
-  } */
-
+  
   /* #form-div{
     width: 700px;
     height: 500px;
@@ -583,6 +574,8 @@ export default {
   }
 </style>
 
-my name is bell?
-
-hello world!
+<style>
+  .el-submenu__title:hover {
+      background-color: #223449;
+  }
+</style>
