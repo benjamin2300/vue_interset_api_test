@@ -80,7 +80,7 @@ export default {
           .attr("height", chart_height);
       
       // let x_axis = d3.axisBottom(x_scale);
-      // if(this.formData.formType == "year"){
+      // if(this.formData.timeType == "year"){
       //   let time_format = d3.timeFormat('%m月');
       //   x_axis.ticks(12)
       //     .tickFormat(time_format);
@@ -420,6 +420,8 @@ export default {
       });
     },
     pdfGenerate(){
+
+      apiService.getAllUsersList();
       
       if(this.formData.content.length == 0){
         this.noData = true;
@@ -434,10 +436,10 @@ export default {
         doc.setFontSize(24);
         doc.text('Interset總體報表', 70, 150);
         
-        if(this.formData.formType == "year"){
+        if(this.formData.timeType == "year"){
           doc.setFontSize(20);
           doc.text(this.formData.year.getFullYear() + "年報", 85, 160);
-        }else if(this.formData.formType == "season"){
+        }else if(this.formData.timeType == "season"){
           doc.setFontSize(20);
           let t = this.formData.season_year.getFullYear();
           if(this.formData.season_q == "Q1"){
@@ -450,8 +452,8 @@ export default {
             t += "(" + "Q4" + ")";
           }
           doc.text(t + "月報", 80, 160);
-        } else if(this.formData.formType == "month"){
-          console.log(this.formData.formType);
+        } else if(this.formData.timeType == "month"){
+          console.log(this.formData.timeType);
           
           doc.setFontSize(20);
           let t = this.formData.month.getFullYear();
@@ -464,10 +466,10 @@ export default {
         doc.setFontSize(10);
         // console.log(this.formData);
 
-        if(this.formData.formType == "year"){
+        if(this.formData.timeType == "year"){
           this.ts = this.formData.year;
           this.te = new Date(this.ts.getFullYear()+1, 0, 1);
-        }else if(this.formData.formType == "season"){
+        }else if(this.formData.timeType == "season"){
           let year = this.formData.season_year;
           if(this.formData.season_q == "Q1"){
             this.ts = new Date(year.getFullYear(), 0, 1);
@@ -482,12 +484,12 @@ export default {
             this.ts = new Date(year.getFullYear(), 9, 1);
             this.te = new Date(year.getFullYear()+1, 1, 1);
           }
-        }else if(this.formData.formType == "month"){
+        }else if(this.formData.timeType == "month"){
           let month = this.formData.month;
           this.ts = new Date(month.getFullYear(), month.getMonth(), 1);
           this.te = new Date(month.getFullYear(), month.getMonth()+1, 1);
 
-        }else if(this.formData.formType == "custom"){
+        }else if(this.formData.timeType == "custom"){
           this.ts = this.formData.daterange[0];
           this.te = this.formData.daterange[1];
         }

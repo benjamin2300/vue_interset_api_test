@@ -2,7 +2,7 @@
     <div class="form-div">
     <el-form ref="form" :model="formData" >
       <el-form-item label="報表種類" prop="type">
-        <el-radio-group class="report-type" v-model="formData.formType">
+        <el-radio-group class="report-type" v-model="formData.timeType">
           <el-radio label="year">年報</el-radio>
           <el-radio label="season">季報</el-radio>
           <el-radio label="month">月報</el-radio>
@@ -15,22 +15,22 @@
         v-model="formData.year"
         type="year"
         placeholder="選擇年"
-        v-show='formData.formType === "year"'>
+        v-show='formData.timeType === "year"'>
         </el-date-picker>
         <el-date-picker
         v-model="formData.month"
         type="month"
         placeholder="選擇月"
-        v-show='formData.formType === "month"'>
+        v-show='formData.timeType === "month"'>
         </el-date-picker>
         <el-date-picker
         style="margin-right:25px;"
         v-model="formData.season_year"
         type="year"
         placeholder="選擇年"
-        v-show='formData.formType === "season"'>
+        v-show='formData.timeType === "season"'>
         </el-date-picker>
-        <el-select v-show='formData.formType === "season"' v-model="formData.season_q" placeholder="请选择" class="season-q-select">
+        <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="请选择" class="season-q-select">
           <el-option
             v-for="item in options"
             :key="item.value"
@@ -40,7 +40,7 @@
         </el-select>
         <el-date-picker
           v-model="formData.daterange"
-          v-show='formData.formType === "custom"'
+          v-show='formData.timeType === "custom"'
           type="daterange"
           range-separator="至"
           start-placeholder="开始日期"
@@ -55,14 +55,14 @@
         <div class="transfer-label"><span>選擇內容</span></div>
         <div class="transfer-body">
           <el-transfer 
-            v-model="formData.content" 
-            :data="formData.transferData"
+            v-model="formData.contentList" 
+            :data="allContentList"
             :titles="['可選擇項目', '已選擇的項目']" 
             :format="{
               noChecked: '${total}',
               hasChecked: '${checked}/${total}'
             }"
-            :left-default-checked="[0,1,2,3,4,5,11,12,13]"
+            :left-default-checked="contentLeftCheck"
             >
           </el-transfer>
         </div>
@@ -87,7 +87,7 @@ export default {
     PDFGenerator
   },
   data(){
-    const generateTransferData = _ => {
+    const generateAllContentList = _ => {
       const data = [];
       const data_type = ["使用者", "控制器", "專案", "資源", "分享資源"];
       for (let i = 0; i < data_type.length; i++) {
@@ -107,14 +107,14 @@ export default {
     };
     return {
       formData: {
-        formType: "year",
+        formType: "organization",
+        timeType: "year",
         year:"",
         month:"",
         season_year:"",
         season_q:"",
         daterange:"",
-        content: [],
-        transferData: generateTransferData(),
+        contentList: [],
       },
       body: "",
       options: [{
@@ -130,6 +130,8 @@ export default {
         value: 'Q4',
         label: 'Q4(10月～12月)'
       }],
+      allContentList: generateAllContentList(),
+      contentLeftCheck: [0,1,2,3,4,5,11,12,13],
     };
   },
   mounted(){

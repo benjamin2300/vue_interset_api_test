@@ -7,7 +7,31 @@ export class APIService {
   }
 
   async getAllUsersList() {
-    
+    // token
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users?count=100&sortOrder=asc`;
+    let response = await axios.get(url);
+    // get all user name
+    let allUsers = [];
+    let scrollId = '';
+    let data = response.data.data;
+    scrollId = response.data.scrollId;
+
+    // data.map(function(d){    
+    //   return allUsers.push({name: d.entityName, id: d.entityHash});
+    // })
+    while(data.length != 0){
+      data.map(function(d){
+        return allUsers.push({name: d.entityName, id: d.entityHash});
+      });
+      url = `${API_URL}/api/search/0/users?count=100&sortOrder=asc`;
+      url += '&scrollId=' + scrollId;
+      response = await axios.get(url);
+      data = response.data.data;
+      scrollId = response.data.scrollId;
+    }    
+    return allUsers
   }
 
 

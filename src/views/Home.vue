@@ -576,6 +576,6 @@ export default {
 
 <style>
   .el-submenu__title:hover {
-      background-color: #223449;
+    background-color: #223449 !important;
   }
 </style>
