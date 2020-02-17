@@ -21,7 +21,9 @@ export default {
     return {
       noData: false,
       ts: "",
-      te: ""
+      te: "",
+      userName: "",
+      userHash: "",
     }
   },
   props: {
@@ -37,8 +39,6 @@ export default {
       doc.text("總體風險值變化", 60, 20);
       // console.log(data);
       // console.log(new Date(data[0].timestamp));
-      
-
       $('#chart').empty();
       $('#canvas').empty();
       
@@ -109,7 +109,7 @@ export default {
           .call(y_axis);
       
       // Create Line
-      var line = d3.line()
+      let line = d3.line()
           .defined(function(d){
             return d.risk >= 0;
           })
@@ -421,7 +421,7 @@ export default {
     },
     pdfGenerateOrganizationReport(){
       // 1st Page
-      var doc = new jsPDF();
+      let doc = new jsPDF();
       doc.setFont('msyh');
       let month = [1,2,3,4,5,6,7,8,9,10,11,12]
       
@@ -648,18 +648,325 @@ export default {
         doc.save('test.pdf');
       });
     },
+    generatePDFSingleRisk(doc, data){
+      let fill_color = "";
+      let line_color = "";
+      let risk_level = "";
+      // risk vvalue decide color
+      if(data >=0 && data<25){
+        // low risk, green
+        fill_color = "#1ad424";
+        line_color = "#15aa1d";
+        risk_level = "low";
+      }else if(data < 50){
+        // medium risk, yellow
+        fill_color = "#ffff40";
+        line_color = "#e6b219";
+        risk_level = "medium";
+      }else if(data < 75){
+        // high risk, orange
+        fill_color = "#ffc482";
+        line_color = "#ff7b00";
+        risk_level = "high";
+      }else{
+        // extreme risk, red
+        fill_color = "#eb616c";
+        line_color = "#cc0000";
+        risk_level = "extreme";
+      }
+
+
+      $('#chart').empty();
+      $('#canvas').empty();
+      // let margin = {top: 20, right: 20, bottom: 70, left: 40};
+      let padding = 5;
+      let chart_width = 150 - 2 * padding;
+      let chart_height = 150 - 2 * padding;
+      let x_scale = d3.scaleBand().rangeRound([0, chart_width]).padding(0.05);
+      let y_scale = d3.scaleLinear().rangeRound([chart_height, 0]);
+
+      let svg = d3.select("#chart")
+                .append("svg")
+                .attr("width", chart_width + 2 * padding)
+                .attr("height", chart_height + 2 * padding)
+                .append("g");
+
+      svg.append("circle")
+          .attr("cx", padding + chart_width / 2)
+          .attr("cy", padding + chart_height / 2)
+          .attr("r", chart_width / 2)
+          .attr("stroke", line_color)
+          .attr("stroke-width", "5px")
+          .attr("fill", fill_color)
+          .attr("stroke-opacity","0.5")
+          .attr("fill-opacity","0.2");
+      
+      svg.append("text")
+          .attr("x", padding + chart_width / 2)
+          .attr("y", padding + chart_height / 2)
+          .attr("font-size", "50px")
+          .attr("font-weight", 700)
+          .attr("text-anchor", 'middle')
+          .attr("dy", ".3em")
+          .attr("fill", line_color)
+          .attr("fill-opacity", "0.7")
+          .text(data);
+      
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + 2 * padding)
+          .attr("height", chart_height + 2 * padding);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // doc.setFontSize(15);
+      // doc.text('風險值', 35, 18);
+      doc.addImage(imgData, 'PNG', 20, 20, 50, 50);
+    },
+    generatePDFSingleRiskGraph(doc, data){
+      // console.log(new Date(data[0].timestamp));
+      $('#chart').empty();
+      $('#canvas').empty();
+      
+      let time_format = d3.timeFormat('%m/%d');
+      let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
+      
+      data = data.map(function(d){ return {date: new Date(d.timestamp * 1000), risk: d.risk};});
+      // console.log(data);
+      
+      data.pop();
+      data.shift();
+      // console.log(data);
+      let margin = {top: 50, right: 30, bottom: 30, left: 60};
+      let chart_width = 600 - margin.left - margin.right ;
+      let chart_height = 400 -margin.top - margin.bottom;
+
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      // scale
+      let x_scale = d3.scaleTime()
+          .domain(d3.extent(data, function(d) { return d.date; }))
+          // .domain([
+          //   d3.min(data, function(d){
+          //     return d.date;
+          //   }),
+          //   d3.max(data, function(d){
+          //     return d.date;
+          //   })
+          // ])
+          .range([0, chart_width]);
+      
+      let y_scale = d3.scaleLinear()
+          .domain([
+            0, 100
+          ])
+          .range([chart_height, 0]);
+
+      
+          // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      
+      // let x_axis = d3.axisBottom(x_scale);
+      // if(this.formData.timeType == "year"){
+      //   let time_format = d3.timeFormat('%m月');
+      //   x_axis.ticks(12)
+      //     .tickFormat(time_format);
+          
+      // }
+      let x_axis = d3.axisBottom(x_scale)
+          .ticks(4)
+          .tickFormat(time_format);
+      
+      let y_axis = d3.axisLeft(y_scale)
+          .ticks(10);
+      
+      // Create Line
+      let line = d3.line()
+          .defined(function(d){
+            return d.risk >= 0;
+          })
+          .x(function(d){
+            // console.log(x_scale(d.date));
+            
+            return x_scale(d.date);
+          })
+          .y(function(d){
+            return y_scale(d.risk);
+          });
+      // Create area
+      let area = d3.area()
+          .x(function(d){
+            return x_scale(d.date);
+          })
+          .y0(chart_height)
+          .y1(function(d){
+            return y_scale(d.risk);
+          })
+      
+      svg.append("path")
+        .datum(data)
+        .attr("class", "area")
+        .attr("d", area)
+        .attr("fill", "#00c973")
+        .attr("fill-opacity", 0.5);
+
+      svg.append( 'path' )
+        .datum( data )
+        .attr( 'fill', 'none')
+        .attr( 'stroke', '#00a15c')
+        .attr( 'stroke-opacity', 0.5 )
+        .attr( 'stroke-width', 2.5)
+        .attr( 'd', line );
+
+      svg.append("g")
+          .style('color', 'black')
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .call(x_axis);
+      
+      svg.append("g")
+          .style('color', 'black')
+          .call(y_axis);
+
+      svg.append("text")
+          
+    },
+    pdfGenerateSingleUserReport(){
+      // 1st Page
+      this.userName = this.formData.user;
+      let doc = new jsPDF();
+      doc.setFont('msyh');
+      let month = [1,2,3,4,5,6,7,8,9,10,11,12]
+      
+      doc.setFontSize(24);
+      doc.text('Interset個人報表', 70, 150);
+      
+      if(this.formData.timeType == "year"){
+        doc.setFontSize(20);
+        doc.text(this.formData.year.getFullYear() + "年報", 85, 160);
+      }else if(this.formData.timeType == "season"){
+        doc.setFontSize(20);
+        let t = this.formData.season_year.getFullYear();
+        if(this.formData.season_q == "Q1"){
+          t += "(" + "Q1" + ")";
+        }else if(this.formData.season_q == "Q2"){
+          t += "(" + "Q2" + ")";
+        }else if(this.formData.season_q == "Q3"){
+          t += "(" + "Q3" + ")";
+        }else if(this.formData.season_q == "Q4"){
+          t += "(" + "Q4" + ")";
+        }
+        doc.text(t + "季報", 80, 160);
+      } else if(this.formData.timeType == "month"){
+        // console.log(this.formData.timeType);
+        
+        doc.setFontSize(20);
+        let t = this.formData.month.getFullYear();
+        t += "/" + (this.formData.month.getMonth()+1) + "月";
+        doc.text(t + "月報", 80, 160);
+      }
+
+      doc.setFontSize(15);
+
+      doc.text("使用者 : " + this.userName, 80, 170);
+
+
+      doc.setFontSize(10);
+      // console.log(this.formData);
+
+      if(this.formData.timeType == "year"){
+        this.ts = this.formData.year;
+        this.te = new Date(this.ts.getFullYear()+1, 0, 1);
+      }else if(this.formData.timeType == "season"){
+        let year = this.formData.season_year;
+        if(this.formData.season_q == "Q1"){
+          this.ts = new Date(year.getFullYear(), 0, 1);
+          this.te = new Date(year.getFullYear(), 3, 1);
+        }else if(this.formData.season_q == "Q2"){
+          this.ts = new Date(year.getFullYear(), 3, 1);
+          this.te = new Date(year.getFullYear(), 6, 1);
+        }else if(this.formData.season_q == "Q3"){
+          this.ts = new Date(year.getFullYear(), 6, 1);
+          this.te = new Date(year.getFullYear(), 9, 1);
+        }else if(this.formData.season_q == "Q4"){
+          this.ts = new Date(year.getFullYear(), 9, 1);
+          this.te = new Date(year.getFullYear()+1, 1, 1);
+        }
+      }else if(this.formData.timeType == "month"){
+        let month = this.formData.month;
+        this.ts = new Date(month.getFullYear(), month.getMonth(), 1);
+        this.te = new Date(month.getFullYear(), month.getMonth()+1, 1);
+
+      }else if(this.formData.timeType == "custom"){
+        this.ts = this.formData.daterange[0];
+        this.te = this.formData.daterange[1];
+      }
+      
+      this.ts = this.ts.getTime();
+      this.te = this.te.getTime();
+
+      let new_ts = new Date(this.ts);
+      let new_te = new Date(this.te);
+
+      let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
+                      + " 到 " + 
+                      new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate(); 
+      doc.text(date_range, 80, 180);
+      // Data Page
+      // get daterange
+      // let userHash = ""
+      // console.log(this.userName);
+      
+      apiService.getUserHash(this.userName).then((value) => {
+        // get Hash
+
+        this.userHash = value.data.users[0].entityHash;
+        // console.log(this.userHash);
+        Promise.all([
+          apiService.getUserRisk(this.userHash),
+          apiService.getUserRiskGraph(this.userHash, this.ts, this.te)
+        ]).then((values) => {
+          doc.addPage();
+          // console.log(this.userHash);
+          // get user current risk
+          // set risk icon graph
+          let userRisk = values[0].data.risk;
+          this.generatePDFSingleRisk(doc, userRisk);
+          // risk graph
+          
+          this.generatePDFSingleRiskGraph(doc, values[1].data)
+          
+          
+
+          doc.save('test.pdf');
+        });
+      });
+      
+    },
     pdfGenerate(){
 
-      // apiService.getAllUsersList();
-      
       if(this.formData.contentList.length == 0){
         this.noData = true;
       } else {
         this.noData = false;
         if(this.formData.formType == "organization"){
-          this.pdfGenerateOrganizationReport()
+          this.pdfGenerateOrganizationReport();
         }else if(this.formData.formType == "single-user"){
-
+          this.pdfGenerateSingleUserReport();
         }else if(this.formData.formType == "multi-user"){
 
         }

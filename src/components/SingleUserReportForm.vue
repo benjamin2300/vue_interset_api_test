@@ -160,7 +160,7 @@ export default {
   mounted(){
     $(".el-transfer-panel__empty").text("無資料");
     apiService.getAllUsersList().then((value) => {
-      this.allUsersList = value;
+      this.allUserList = value;
       // console.log(this.allUsersList);
     }); 
     this.contentLeftCheck = [0,1,2,3,4,5,11,12,13];

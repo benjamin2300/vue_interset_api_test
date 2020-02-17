@@ -34,12 +34,42 @@ export class APIService {
     return allUsers
   }
 
-
-
-  async getUsers() {
+  async getUserHash(userName){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    const url = `${API_URL}/api/search/0/users`;
+    let url = `${API_URL}/api/search/0/typeAhead?count=5`;
+    
+    if(userName){
+      url += '&text=' + userName;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+  async getUserRisk(userHash){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/`;
+    
+    if(userHash){
+      url += userHash + '/risk?sort=current&markup=true&tz=UTC%2B8';
+    }
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  async getUserRiskGraph(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/`
+    if(userHash){
+      url += userHash + '/riskGraph?count=500&tz=UTC%2B8';
+    }
+    if(ts && te){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
     const response = await axios.get(url);
     return response.data;
   }

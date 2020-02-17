@@ -537,18 +537,18 @@ export default {
   .te-date-picker {
     margin: 10px;
   }
-  /* #chart {
+  #chart {
     width: 800px;
     height: 800px;
     background-color: #f7f7f7;
     margin: 10px auto;
-  } */
-  #chart {
+  }
+  /* #chart {
     display: none;
   } 
-   #div-canvas {
+  #div-canvas {
     display: none;
-  } 
+  }  */
 
   .report-type {
     display: flex-start;
