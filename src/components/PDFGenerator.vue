@@ -748,7 +748,7 @@ export default {
       data.pop();
       data.shift();
       // console.log(data);
-      let margin = {top: 50, right: 30, bottom: 30, left: 60};
+      let margin = {top: 70, right: 30, bottom: 30, left: 60};
       let chart_width = 600 - margin.left - margin.right ;
       let chart_height = 400 -margin.top - margin.bottom;
 
@@ -830,7 +830,7 @@ export default {
         .attr( 'fill', 'none')
         .attr( 'stroke', '#00a15c')
         .attr( 'stroke-opacity', 0.5 )
-        .attr( 'stroke-width', 2.5)
+        .attr( 'stroke-width', "2px")
         .attr( 'd', line );
 
       svg.append("g")
@@ -843,7 +843,120 @@ export default {
           .call(y_axis);
 
       svg.append("text")
-          
+        .attr("transform", "rotate(-90)")
+        .attr("y", 0 - margin.left + 10 )
+        .attr("x", 0 - (chart_height / 2))
+        .attr("dy", "1em")
+        .attr("dx", "1em")
+        .attr("text-anchor", "middle")
+        .text("風險值");   
+        
+      svg.append("text")
+        .attr("transform", "translate(" + chart_width + ", " + chart_height +")" )
+        .attr("x", 0)
+        .attr("y", margin.bottom / 2)
+        .attr("dy", ".5em")
+        .attr("text-anchor", "middle")
+        .text("日期");
+      
+      svg.append("text")
+        .attr("transform", "translate(" + chart_width / 2+ ", 0)" )
+        .attr("x", 0)
+        .attr("y", 0)
+        .attr("dy", "-1em")
+        .attr("font-size", "30px")
+        .attr("text-anchor", "middle")
+        .text("風險值變化");
+
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // doc.setFontSize(15);
+      // doc.text('風險值', 35, 18);
+      doc.addImage(imgData, 'PNG', 20, 80, 150, 75 );
+
+    },
+    generatePDFSingleWorkingHoursDaily(doc, data){
+      // data
+      data = data.map(function(d){
+        return {slice: 1, value: d.expected};
+      });
+
+      // pie chart
+      $('#chart').empty();
+      $('#canvas').empty();
+      let chart_width = 450;
+      let chart_height = 450;
+      let padding = 40;
+      let radius = chart_width / 2 - padding;
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width)
+          .attr("height", chart_height)
+          .append("g")
+          .attr("transform", "translate(" + chart_width / 2 + ", " + chart_height /2 + ")");
+      
+      svg.append("g")
+          .attr("class", "slices");
+      svg.append("g")
+          .attr("class", "lables");
+      
+      // pie chart layout
+      let pie = d3.pie()
+          .value(function(d){
+            return d.slice;
+          });
+      
+      let r_scale = d3.scaleLinear()
+          .domain([
+            0, d3.max(data, function(d){
+              return d.value;
+            })
+          ])
+          .range([0, radius]);
+
+      // let arc = d3.arc()
+      //     .outerRadius(function(d){
+      //       r_scale(d.value);
+      //     })
+      //     .innerRadius(0);
+
+      let arc = d3.arc()
+          .innerRadius(0)
+      
+      let slice = svg.select(".slices")
+          .selectAll("arc")
+          .data(pie(data))
+          .enter()
+          .append("g")          
+          .attr("class", "arc")
+          .append("path")
+          .attr('d', function(d, i){
+            return arc.outerRadius(r_scale(d.value))(d, i);
+          })
+          .attr("fill", "#98abc5")
+          .attr("stroke", "black")
+          .style("stroke-width", "2px")
+          .style("opacity", 0.7);
+
+      
+
     },
     pdfGenerateSingleUserReport(){
       // 1st Page
@@ -882,7 +995,7 @@ export default {
 
       doc.setFontSize(15);
 
-      doc.text("使用者 : " + this.userName, 80, 170);
+      doc.text("使用者 : " + this.userName, 75, 170);
 
 
       doc.setFontSize(10);
@@ -938,7 +1051,8 @@ export default {
         // console.log(this.userHash);
         Promise.all([
           apiService.getUserRisk(this.userHash),
-          apiService.getUserRiskGraph(this.userHash, this.ts, this.te)
+          apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
+          apiService.getUserWorkingHoursDaily(this.userHash)
         ]).then((values) => {
           doc.addPage();
           // console.log(this.userHash);
@@ -947,8 +1061,10 @@ export default {
           let userRisk = values[0].data.risk;
           this.generatePDFSingleRisk(doc, userRisk);
           // risk graph
-          
           this.generatePDFSingleRiskGraph(doc, values[1].data)
+          // working hours daily
+          console.log(values[2].data);
+          this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
           
           
 

@@ -74,6 +74,18 @@ export class APIService {
     return response.data;
   }
 
+  async getUserWorkingHoursDaily(userHash){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/`
+    if(userHash){
+      url += userHash + '/workingHours/daily';
+    }
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+
   async getRiskGraph(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
