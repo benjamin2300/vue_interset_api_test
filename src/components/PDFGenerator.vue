@@ -912,16 +912,60 @@ export default {
           .append("g")
           .attr("transform", "translate(" + chart_width / 2 + ", " + chart_height /2 + ")");
       
+      
+      svg.append("g")
+          .attr("class", "labels");
+      svg.append("g")
+          .attr("class", "bg-pie-chart");
+
+      
       svg.append("g")
           .attr("class", "slices");
       svg.append("g")
-          .attr("class", "lables");
+          .attr("class", "bg-circle");
+
+      let bg_color_scale = d3.scaleOrdinal()
+          .range(["#cccccc", "#ffffff"])
       
+      let bg_data = new Array(24).fill(1);
+
+      let bg_pie = d3.pie();
+      let bg_arc = d3.arc()
+          .innerRadius(0)
+          .outerRadius(radius);
+      
+      let bg_arcs = svg.select(".bg-pie-chart")
+          .selectAll(".bg-arc")
+          .data(bg_pie(bg_data))
+          .enter()
+          .append("g")
+          .attr("class", "bg-arc")
+          .append("path")
+          .attr("d", bg_arc)
+          .attr("fill", function(d, i){
+            return bg_color_scale(i % 2);
+          })
+          // .attr("stroke", "black")
+          // .attr("stroke-width", "2px")
+          .attr("fill-opacity", 0.2);
+
+
+      let bg_circle = svg.select(".bg-circle")
+          .append("circle")
+          .attr("cx", 0)
+          .attr("cy", 0)
+          .attr("r", radius)
+          .attr("stroke-width", "1px")
+          .attr("stroke", "#6c85a8")
+          .attr("fill", "none");
+
+
       // pie chart layout
       let pie = d3.pie()
           .value(function(d){
             return d.slice;
-          });
+          })
+          .startAngle(-0.25 * Math.PI);
       
       let r_scale = d3.scaleLinear()
           .domain([
@@ -931,32 +975,143 @@ export default {
           ])
           .range([0, radius]);
 
-      // let arc = d3.arc()
-      //     .outerRadius(function(d){
-      //       r_scale(d.value);
-      //     })
-      //     .innerRadius(0);
-
       let arc = d3.arc()
           .innerRadius(0)
+          .outerRadius(function(d, i){
+            return r_scale(d.data.value);
+          })
       
-      let slice = svg.select(".slices")
-          .selectAll("arc")
+      let slices = svg.select(".slices")
+          .selectAll(".arc")
           .data(pie(data))
           .enter()
           .append("g")          
           .attr("class", "arc")
           .append("path")
-          .attr('d', function(d, i){
-            return arc.outerRadius(r_scale(d.value))(d, i);
-          })
-          .attr("fill", "#98abc5")
-          .attr("stroke", "black")
-          .style("stroke-width", "2px")
+          .attr('d', arc)    
+          .attr("fill", "#97a9c2")
+          .attr("stroke", "white")
+          .style("stroke-width", "0.5px")
           .style("opacity", 0.7);
 
-      
+      let labels = ["12pm", "3pm", "6pm", "9pm", "12am", "3am", "6am", "9am"];
+      svg.select(".labels")
+          .selectAll(".label")
+          .data(labels)
+          .enter()
+          .append("g")
+          .attr("class", "label")
+          .append("text")
+          .text(function(d){
+            // console.log(d);
+            return d;
+          })
+          .attr("text-anchor", "middle")
+          .attr("x", function(d, i){
+            // console.log((radius+5) * Math.sin(i * Math.PI / 4) + ", " + (radius+5) * Math.cos(i * Math.PI / 4));
+            
+            return (radius+5) * Math.sin(i * Math.PI / 4);
+          })
+          .attr("y", function(d, i){
 
+            return -(radius+5) * Math.cos(i * Math.PI / 4);
+          })
+          .attr("dx", function(d, i){
+            // console.log(d);
+            
+            if(i >= 5 && i <= 7){
+              return "-1em";
+            }else if(i >= 1 && i <= 3 ){
+              return "1.5em";
+            }
+          })
+          .attr("dy", function(d, i){
+            if(i == 4){
+              return "1em";
+            }
+          });
+
+    },
+    generatePDFSingleWorkingHoursWeekly(doc, data){
+      // process data
+      let week_data = [];
+      let sum = 0;
+      let counter = 0;
+      // console.log(data);
+      
+      for(let i=0; i<data.length; i++){
+        sum += data[i].expected;
+        counter += 1;
+        if(counter == 48){
+          // console.log(sum);
+          
+          week_data.push(sum);
+          sum = 0;
+          counter = 0;
+        }
+      }
+      let labels = ["星期一", "星期二", "星期三", "星期四","星期五","星期六","星期日",]
+      week_data = week_data.map(function(d, i){
+        return {
+          label: labels[i],
+          value: d
+        };
+      });
+      console.log(week_data);
+      
+      // bar chart
+      $('#chart').empty();
+      $('#canvas').empty();
+      
+      let margin = {top: 70, right: 30, bottom:30, left: 60}
+      let chart_width = 600 - margin.right - margin.left;
+      let chart_height = 400 - margin.top - margin.bottom;
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.right + ")");
+      
+      svg.append("g")
+          .attr("class", "bg-bar-chart");
+      svg.append("g")
+          .attr("class", "x-axis");
+      svg.append("g")
+          .attr("class", "y-axis");
+      svg.append("g")
+          .attr("class", "bars");
+      
+      let x_scale = d3.scaleBand()
+          .rangeRound([0, chart_width])
+          .padding(0.05)
+          .domain(labels);
+      let y_scale = d3.scaleLinear()
+          .range([chart_height, 0])
+          .domain([0, d3.max(week_data, function(d){
+            return +d.value;
+          })]);
+      let bars = svg.select(".bars")
+          .selectAll(".bar")
+          .data(week_data)
+          .enter()
+          .append("g")
+          .attr("class", "bar")
+          .append("rect")
+          .attr("x", function(d){
+            return x_scale(d.label);
+          })
+          .attr("y", function(d){
+            return y_scale(d.value);
+          })
+          .attr("width", x_scale.bandwidth())
+          .attr("height", function(d){
+            console.log(d);
+            
+            return chart_height - y_scale(d.value);
+          })
+          .attr("fill", "#97a9c2")
     },
     pdfGenerateSingleUserReport(){
       // 1st Page
@@ -1048,11 +1203,13 @@ export default {
         // get Hash
 
         this.userHash = value.data.users[0].entityHash;
+        
         // console.log(this.userHash);
         Promise.all([
           apiService.getUserRisk(this.userHash),
           apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
-          apiService.getUserWorkingHoursDaily(this.userHash)
+          apiService.getUserWorkingHoursDaily(this.userHash),
+          apiService.getUserWorkingHoursWeekly(this.userHash)
         ]).then((values) => {
           doc.addPage();
           // console.log(this.userHash);
@@ -1063,8 +1220,12 @@ export default {
           // risk graph
           this.generatePDFSingleRiskGraph(doc, values[1].data)
           // working hours daily
-          console.log(values[2].data);
+          // console.log(values[2].data);
           this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
+          // working hours weekly
+          // console.log(values[3].data);
+          
+          this.generatePDFSingleWorkingHoursWeekly(doc, values[3].data);
           
           
 
