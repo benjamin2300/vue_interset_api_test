@@ -120,10 +120,13 @@ export default {
           })
           .y(function(d){
             return y_scale(d.risk);
-          });
+          })
+         	.curve(d3.curveCardinal);
+
+          // .curve(d3.curveMonotoneX);
       
       svg.append( 'path' )
-        .datum( data )
+        .data( data )
         .attr( 'fill', 'none' )
         .attr( 'stroke', '#73FF36')
         .attr( 'stroke-width', 3)
@@ -649,6 +652,11 @@ export default {
       });
     },
     generatePDFSingleRisk(doc, data){
+      // console.log(data);
+      
+      data = d3.max(data, function(d){
+        return d.risk
+      })
       let fill_color = "";
       let line_color = "";
       let risk_level = "";
@@ -740,7 +748,7 @@ export default {
       doc.addImage(imgData, 'PNG', 20, 20, 50, 50);
       doc.setFontSize(30)
       doc.text(risk_level_text, 90, 40);
-      doc.text("使用者 : " + this.userName, 90, 60);
+      doc.text( this.userName, 90, 60);
     },
     generatePDFSingleRiskGraph(doc, data){
       // console.log(new Date(data[0].timestamp));
@@ -757,8 +765,8 @@ export default {
       data.shift();
       // console.log(data);
       let margin = {top: 70, right: 30, bottom: 30, left: 60};
-      let chart_width = 600 - margin.left - margin.right ;
-      let chart_height = 280 -margin.top - margin.bottom;
+      let chart_width = 750 - margin.left - margin.right ;
+      let chart_height = 350 -margin.top - margin.bottom;
 
 
       let svg = d3.select("#chart")
@@ -846,7 +854,8 @@ export default {
         .attr("dy", "1em")
         .attr("dx", "1em")
         .attr("text-anchor", "middle")
-        .attr("font-size", "12px")
+        .attr("font-size", "15px")
+        .attr("font-weight", 500)
         .text("風險值");   
         
       svg.append("text")
@@ -854,6 +863,7 @@ export default {
         .attr("x", 0)
         .attr("y", margin.bottom / 2)
         .attr("dy", ".5em")
+        .attr("dx", "1em")
         .attr("text-anchor", "middle")
         .attr("font-size", "12px")
         .text("日期");
@@ -863,7 +873,7 @@ export default {
         .attr("x", 0)
         .attr("y", 0)
         .attr("dy", "-1em")
-        .attr("font-size", "17px")
+        .attr("font-size", "20px")
         .attr("text-anchor", "middle")
         .text("風險值變化");
 
@@ -1061,7 +1071,7 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 20, 160, 80, 80 );
+      doc.addImage(imgData, 'PNG', 105, 210, 80, 80 );
 
     },
     generatePDFSingleWorkingHoursWeekly(doc, data){
@@ -1209,8 +1219,68 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 95, 165, 110, 55 );
+      doc.addImage(imgData, 'PNG', 95, 150, 110, 55 );
           
+    },
+    generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers){
+      $('#my-table').empty();
+      let jspdfTable = [];
+      
+      jspdfTable.push(["極高風險警告數量", riskBreakdown.extreme]);
+      jspdfTable.push(["高風險警告數量", riskBreakdown.high]);
+      jspdfTable.push(["中風險警告數量", riskBreakdown.medium]);
+      jspdfTable.push(["低風險警告數量", riskBreakdown.low]);
+      jspdfTable.push(["登入失敗次數", authLogin[0].totalFailed]);
+      jspdfTable.push(["登入成功次數", authLogin[0].totalSuccess]);
+      // console.log(exitProducers.length);
+      if(!exitProducers.length){
+        // console.log("test");
+        jspdfTable.push(["USB拔除次數", 0]);
+      } else {
+        let num = Object.keys(exitProducers)[0];
+        jspdfTable.push(["USB拔除次數", num]);
+      }
+
+      if(!screenCaptures.length){
+        // console.log("test");
+        jspdfTable.push(["螢幕截圖次數", 0]);
+      } else {
+        let num = Object.keys(screenCaptures)[0];
+        jspdfTable.push(["螢幕截圖次數", num]);
+      }
+
+      if(!violationProducers.length){
+        // console.log("test");
+        jspdfTable.push(["違規觸發次數", 0]);
+      } else {
+        let num = Object.keys(violationProducers)[0];
+        jspdfTable.push(["違規觸發次數", num]);
+      }
+
+      doc.autoTable({html: '#my-table'});
+      doc.autoTable({
+        startY: 160,
+        tableWidth: 80,
+        theme: 'striped',
+        body: jspdfTable,
+        styles: {
+          font: "msyh",
+        },
+        bodyStyles: {
+          textColor: "black",
+          halign: "center",
+          lineWidth: .5,
+          lineColor: "#878787",
+        },
+        columnStyles: {
+          0: {
+            cellWidth: 60,
+          },
+          1: {
+            cellWidth: 20,
+          }
+        }
+      })
     },
     pdfGenerateSingleUserReport(){
       // 1st Page
@@ -1305,10 +1375,19 @@ export default {
         
         // console.log(this.userHash);
         Promise.all([
-          apiService.getUserRisk(this.userHash),
+          // apiService.getUserRisk(this.userHash, "current"),
+          apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
+          // chart graph
           apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
           apiService.getUserWorkingHoursDaily(this.userHash),
-          apiService.getUserWorkingHoursWeekly(this.userHash)
+          apiService.getUserWorkingHoursWeekly(this.userHash),
+          // table data
+          apiService.getUserAlertsBreakdown(this.userHash, this.ts, this.te),
+          apiService.getUserTopFailedLogin(this.userHash, this.ts, this.te),
+          apiService.getUserTopExitProducers(this.userHash, this.ts, this.te),
+          apiService.getUserTopScreenCaptures(this.userHash, this.ts, this.te),
+          apiService.getUserTopViolationProducers(this.userHash, this.ts, this.te),
+
         ]).then((values) => {
           doc.addPage();
           // doc.setFillColor("#87cefa")
@@ -1316,22 +1395,29 @@ export default {
           // console.log(this.userHash);
           // get user current risk
           // set risk icon graph
-          let userRisk = values[0].data.risk;
-          this.generatePDFSingleRisk(doc, userRisk);
+          // let userRisk = values[0].data.risk;
+          this.generatePDFSingleRisk(doc, values[0].data);
           // risk graph
           this.generatePDFSingleRiskGraph(doc, values[1].data)
           // working hours daily
-          // console.log(values[2].data);
           this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
           // working hours weekly
-          // console.log(values[3].data);
           this.generatePDFSingleWorkingHoursWeekly(doc, values[3].data);
-          doc.addPage();
+          // table data
+          let riskBreakdown = values[4].data;
+          let authLogin = values[5].data;
+          let exitProducers = values[6].data;
+          let screenCaptures = values[7].data;
+          let violationProducers = values[8].data;
+          // console.log(failedLogin);
+          // console.log(riskBreakdown);
+          // console.log(exitProducers);
           
           
           
-
+          this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);
           doc.save('test.pdf');
+          
         });
       });
     },

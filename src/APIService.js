@@ -48,13 +48,13 @@ export class APIService {
     return response.data;
   }
 
-  async getUserRisk(userHash){
+  async getUserRisk(userHash, riskType){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     let url = `${API_URL}/api/search/0/users/`;
     
     if(userHash){
-      url += userHash + '/risk?sort=current&markup=true&tz=UTC%2B8';
+      url += userHash + '/risk?sort=' + riskType + '&markup=true&tz=UTC%2B8';
     }
     const response = await axios.get(url);
     return response.data;
@@ -88,7 +88,7 @@ export class APIService {
   async getUserWorkingHoursWeekly(userHash){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    let url = `${API_URL}/api/search/0/users/`
+    let url = `${API_URL}/api/search/0/users/`;
     if(userHash){
       url += userHash + '/workingHours/weekly';
     }
@@ -97,6 +97,88 @@ export class APIService {
     
     return response.data;
   }
+
+  async getUserAlertsBreakdown(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/alerts/breakdown/risk?q=userid%3A`;
+    if(userHash){
+      url += userHash;
+    }
+    if(ts && te){
+      url += "&ts=" + ts + "&te=" + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+  async getUserTopFailedLogin(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/topFailedLogin?q=userid%3A`;
+    if(userHash){
+      url += userHash;
+    }
+    if(ts && te){
+      url += "&ts=" + ts + "&te=" + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+  async getUserTopExitProducers(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/topExitProducers?q=userid%3A`;
+    if(userHash){
+      url += userHash;
+    }
+    if(ts && te){
+      url += "&ts=" + ts + "&te=" + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+  async getUserTopScreenCaptures(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/topScreenCaptures?q=userid%3A`;
+    if(userHash){
+      url += userHash;
+    }
+    if(ts && te){
+      url += "&ts=" + ts + "&te=" + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+  async getUserTopViolationProducers(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/topViolationProducers?q=userid%3A`;
+    if(userHash){
+      url += userHash;
+    }
+    if(ts && te){
+      url += "&ts=" + ts + "&te=" + te;
+    }
+    const response = await axios.get(url);
+    // console.log(response);
+    
+    return response.data;
+  }
+
+
 
 
   async getRiskGraph(ts, te) {

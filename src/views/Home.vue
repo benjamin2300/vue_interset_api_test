@@ -543,12 +543,12 @@ export default {
     background-color: #f7f7f7;
     margin: 10px auto;
   }
-  /* #chart {
+  #chart {
     display: none;
   } 
   #div-canvas {
     display: none;
-  }  */
+  } 
 
   .report-type {
     display: flex-start;

@@ -68,7 +68,7 @@
         </div>
       </el-form-item>
       
-      <div class="transfer-div">
+      <!-- <div class="transfer-div">
         <div class="transfer-label"><span>選擇內容</span></div>
         <div class="transfer-body">
           <el-transfer 
@@ -83,7 +83,7 @@
             >
           </el-transfer>
         </div>
-      </div> 
+      </div>  -->
       
       <div class="pdf-generate-button-div">
         <PDFGenerator :formData="formData" />
@@ -135,7 +135,7 @@ export default {
         season_year:"",
         season_q:"",
         daterange:"",
-        contentList:[],
+        contentList:[1],
         user: "",
       },
       body: "",
@@ -184,7 +184,7 @@ export default {
   }
   .form-div{
     width: 700px;
-    height: 550px;
+    height: 300px;
     margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;
