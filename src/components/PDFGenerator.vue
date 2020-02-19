@@ -652,27 +652,32 @@ export default {
       let fill_color = "";
       let line_color = "";
       let risk_level = "";
+      let risk_level_text = "";
       // risk vvalue decide color
       if(data >=0 && data<25){
         // low risk, green
         fill_color = "#1ad424";
         line_color = "#15aa1d";
         risk_level = "low";
+        risk_level_text = "低風險使用者";
       }else if(data < 50){
         // medium risk, yellow
         fill_color = "#ffff40";
         line_color = "#e6b219";
         risk_level = "medium";
+        risk_level_text = "中風險使用者";
       }else if(data < 75){
         // high risk, orange
         fill_color = "#ffc482";
         line_color = "#ff7b00";
         risk_level = "high";
+        risk_level_text = "高風險使用者";
       }else{
         // extreme risk, red
         fill_color = "#eb616c";
         line_color = "#cc0000";
         risk_level = "extreme";
+        risk_level_text = "極高風險使用者";
       }
 
 
@@ -733,6 +738,9 @@ export default {
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
       doc.addImage(imgData, 'PNG', 20, 20, 50, 50);
+      doc.setFontSize(30)
+      doc.text(risk_level_text, 90, 40);
+      doc.text("使用者 : " + this.userName, 90, 60);
     },
     generatePDFSingleRiskGraph(doc, data){
       // console.log(new Date(data[0].timestamp));
@@ -777,17 +785,6 @@ export default {
             0, 100
           ])
           .range([chart_height, 0]);
-
-      
-          // .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
-      
-      // let x_axis = d3.axisBottom(x_scale);
-      // if(this.formData.timeType == "year"){
-      //   let time_format = d3.timeFormat('%m月');
-      //   x_axis.ticks(12)
-      //     .tickFormat(time_format);
-          
-      // }
       let x_axis = d3.axisBottom(x_scale)
           .ticks(4)
           .tickFormat(time_format);
@@ -849,6 +846,7 @@ export default {
         .attr("dy", "1em")
         .attr("dx", "1em")
         .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
         .text("風險值");   
         
       svg.append("text")
@@ -857,6 +855,7 @@ export default {
         .attr("y", margin.bottom / 2)
         .attr("dy", ".5em")
         .attr("text-anchor", "middle")
+        .attr("font-size", "12px")
         .text("日期");
       
       svg.append("text")
@@ -864,7 +863,7 @@ export default {
         .attr("x", 0)
         .attr("y", 0)
         .attr("dy", "-1em")
-        .attr("font-size", "20px")
+        .attr("font-size", "17px")
         .attr("text-anchor", "middle")
         .text("風險值變化");
 
@@ -902,7 +901,7 @@ export default {
       $('#canvas').empty();
       let chart_width = 450;
       let chart_height = 450;
-      let padding = 40;
+      let padding = 60;
       let radius = chart_width / 2 - padding;
 
       let svg = d3.select("#chart")
@@ -1031,6 +1030,39 @@ export default {
             }
           });
 
+      d3.select("svg")
+          .append("g")
+          .attr("class", "title-text")
+          .append("text")
+          .text("24小時內工作活躍程度")
+          .attr("x", chart_width / 2)
+          .attr("text-anchor", "middle")
+          .attr("y", padding / 2)
+          .attr("dy", "-.5em")
+          .attr("font-size", "20px");
+
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width )
+          .attr("height", chart_height );
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // doc.setFontSize(15);
+      // doc.text('風險值', 35, 18);
+      doc.addImage(imgData, 'PNG', 20, 160, 80, 80 );
+
     },
     generatePDFSingleWorkingHoursWeekly(doc, data){
       // process data
@@ -1065,7 +1097,7 @@ export default {
           })
         }
       })
-      console.log(bg_data);
+      // console.log(bg_data);
       
       // back ground bar chart data
       
@@ -1157,6 +1189,27 @@ export default {
       // svg.select(".y-axis")
       //     .attr("color", "black")
       //     .call(d3.axisLeft(y_scale));
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.right + margin.left);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // doc.setFontSize(15);
+      // doc.text('風險值', 35, 18);
+      doc.addImage(imgData, 'PNG', 95, 165, 110, 55 );
           
     },
     pdfGenerateSingleUserReport(){
@@ -1258,6 +1311,8 @@ export default {
           apiService.getUserWorkingHoursWeekly(this.userHash)
         ]).then((values) => {
           doc.addPage();
+          // doc.setFillColor("#87cefa")
+          // doc.roundedRect(10, 10, 200, 500, 2, 3, "F")
           // console.log(this.userHash);
           // get user current risk
           // set risk icon graph
@@ -1270,15 +1325,15 @@ export default {
           this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
           // working hours weekly
           // console.log(values[3].data);
-          
           this.generatePDFSingleWorkingHoursWeekly(doc, values[3].data);
+          doc.addPage();
+          
           
           
 
           doc.save('test.pdf');
         });
       });
-      
     },
     pdfGenerate(){
 
