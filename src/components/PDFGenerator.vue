@@ -750,7 +750,7 @@ export default {
       // console.log(data);
       let margin = {top: 70, right: 30, bottom: 30, left: 60};
       let chart_width = 600 - margin.left - margin.right ;
-      let chart_height = 400 -margin.top - margin.bottom;
+      let chart_height = 280 -margin.top - margin.bottom;
 
 
       let svg = d3.select("#chart")
@@ -860,11 +860,11 @@ export default {
         .text("日期");
       
       svg.append("text")
-        .attr("transform", "translate(" + chart_width / 2+ ", 0)" )
+        .attr("transform", "translate(" + chart_width / 2 + ", 0)" )
         .attr("x", 0)
         .attr("y", 0)
         .attr("dy", "-1em")
-        .attr("font-size", "30px")
+        .attr("font-size", "20px")
         .attr("text-anchor", "middle")
         .text("風險值變化");
 
@@ -888,7 +888,7 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 20, 80, 150, 75 );
+      doc.addImage(imgData, 'PNG', 30, 80, 150, 70 );
 
     },
     generatePDFSingleWorkingHoursDaily(doc, data){
@@ -1057,25 +1057,35 @@ export default {
           value: d
         };
       });
-      console.log(week_data);
+      let bg_data = week_data.map(function(d, i){
+        return {
+          label: labels[i],
+          value: d3.max(week_data, function(d){
+            return d.value;
+          })
+        }
+      })
+      console.log(bg_data);
+      
+      // back ground bar chart data
       
       // bar chart
       $('#chart').empty();
       $('#canvas').empty();
       
-      let margin = {top: 70, right: 30, bottom:30, left: 60}
+      let margin = {top: 60, right: 30, bottom:30, left: 60}
       let chart_width = 600 - margin.right - margin.left;
-      let chart_height = 400 - margin.top - margin.bottom;
+      let chart_height = 300 - margin.top - margin.bottom;
 
       let svg = d3.select("#chart")
           .append("svg")
           .attr("width", chart_width + margin.left + margin.right)
           .attr("height", chart_height + margin.top + margin.bottom)
           .append("g")
-          .attr("transform", "translate(" + margin.left + ", " + margin.right + ")");
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
       
       svg.append("g")
-          .attr("class", "bg-bar-chart");
+          .attr("class", "bg-bars");
       svg.append("g")
           .attr("class", "x-axis");
       svg.append("g")
@@ -1107,11 +1117,47 @@ export default {
           })
           .attr("width", x_scale.bandwidth())
           .attr("height", function(d){
-            console.log(d);
-            
             return chart_height - y_scale(d.value);
           })
           .attr("fill", "#97a9c2")
+          .attr("fill-opacity", 0.8);
+      
+      svg.select(".x-axis")
+          .attr("color", "black")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .call(d3.axisBottom(x_scale))
+          .selectAll("text")
+          .attr("text-anchor", "middle");
+      d3.select("svg").append("text")
+          .text("一週工作活躍程度")
+          .attr("x", margin.left + chart_width / 2)
+          .attr("y", margin.top)
+          .attr("dy", "-1em")
+          .attr("text-anchor", "middle");
+
+      d3.select(".bg-bars")
+          .selectAll("bg-bar")
+          .data(bg_data)
+          .enter()
+          .append("g")
+          .attr("class", "bg-bar")
+          .append("rect")
+          .attr("x", function(d){
+            return x_scale(d.label);
+          })
+          .attr("y", function(d){
+            return y_scale(d.value);
+          })
+          .attr("width", x_scale.bandwidth())
+          .attr("height", function(d){
+            return chart_height - y_scale(d.value);
+          })
+          .attr("fill", "#cccccc")
+          .attr("fill-opacity", 0.3);
+      // svg.select(".y-axis")
+      //     .attr("color", "black")
+      //     .call(d3.axisLeft(y_scale));
+          
     },
     pdfGenerateSingleUserReport(){
       // 1st Page
