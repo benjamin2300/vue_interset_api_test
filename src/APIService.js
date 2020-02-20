@@ -65,7 +65,7 @@ export class APIService {
     axios.defaults.headers.common['Authorization'] = token;
     let url = `${API_URL}/api/search/0/users/`
     if(userHash){
-      url += userHash + '/riskGraph?count=500&tz=UTC%2B8';
+      url += userHash + '/riskGraph?count=100&tz=UTC%2B8';
     }
     if(ts && te){
       url = url + '&ts=' + ts + '&te=' + te;

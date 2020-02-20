@@ -745,10 +745,10 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 20, 20, 50, 50);
+      doc.addImage(imgData, 'PNG', 20, 5, 50, 50);
       doc.setFontSize(30)
-      doc.text(risk_level_text, 90, 40);
-      doc.text( this.userName, 90, 60);
+      doc.text(risk_level_text, 80, 25);
+      doc.text( this.userName, 80, 45);
     },
     generatePDFSingleRiskGraph(doc, data){
       // console.log(new Date(data[0].timestamp));
@@ -874,7 +874,7 @@ export default {
         .attr("transform", "translate(" + chart_width / 2 + ", 0)" )
         .attr("x", 0)
         .attr("y", 0)
-        .attr("dy", "-1em")
+        .attr("dy", "-2em")
         .attr("font-size", "20px")
         .attr("text-anchor", "middle")
         .text("風險值變化");
@@ -899,7 +899,7 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 30, 80, 150, 70 );
+      doc.addImage(imgData, 'PNG', 10, 55, 190, 70 );
 
     },
     generatePDFSingleWorkingHoursDaily(doc, data){
@@ -1050,7 +1050,7 @@ export default {
           .attr("x", chart_width / 2)
           .attr("text-anchor", "middle")
           .attr("y", padding / 2)
-          .attr("dy", "-.5em")
+          .attr("dy", "-.1em")
           .attr("font-size", "20px");
 
       let canvas = document.getElementById('canvas');
@@ -1073,7 +1073,7 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 105, 210, 80, 80 );
+      doc.addImage(imgData, 'PNG', 105, 125, 80, 80 );
 
     },
     generatePDFSingleWorkingHoursWeekly(doc, data){
@@ -1117,7 +1117,7 @@ export default {
       $('#chart').empty();
       $('#canvas').empty();
       
-      let margin = {top: 60, right: 30, bottom:30, left: 60}
+      let margin = {top: 40, right: 30, bottom:30, left: 60}
       let chart_width = 600 - margin.right - margin.left;
       let chart_height = 300 - margin.top - margin.bottom;
 
@@ -1221,16 +1221,16 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 95, 150, 110, 55 );
+      doc.addImage(imgData, 'PNG', 10, 125, 95, 70 );
           
     },
     generatePDFSingleAlertThreatStatisics(doc, data){
       $('#chart').empty();
       $('#canvas').empty();
 
-      let chart_width = 450;
-      let chart_height = 450;
-      let padding = 30;
+      let chart_width = 400;
+      let chart_height = 400;
+      let padding = 60;
 
       // console.log(data);
       let keys = Object.keys(data);
@@ -1255,12 +1255,12 @@ export default {
           .attr("class", "arcs")
       svg.append("g")
           .attr("class", "labels")
+      svg.append("g")
+          .attr("class", "legends")
       // console.log(data);
-      
+      let threat_type = ["Lateral Movement", "Credential Access", "Collection", "Initial Access", "Discovery"]
       let color_scale = d3.scaleOrdinal()
-          .domain(data.map(function(d){
-            return d.threat;
-          }))
+          .domain(threat_type)
           .range(d3.schemeTableau10);
       
       let pie = d3.pie()
@@ -1284,6 +1284,65 @@ export default {
             return color_scale(d.data.threat);
           })
           .attr("stroke", "black");
+
+      let legend = svg.select(".legends")
+          .attr("transform", "translate(" +  (chart_width / 2 - 60) + ", " +  -(chart_height / 2  + 50) + ")")
+          .selectAll(".legend")
+          .data(threat_type);
+        
+      legend.enter()
+          .append("g")
+          .attr("class", "legend")
+          .append("rect")
+          .attr("x", 0)
+          .attr("width", 15)
+          .attr("height", 15)
+          .attr("y", function(d, i){
+            return (15 + 3) * i; 
+          })
+          .attr("fill", function(d){
+            return color_scale(d);
+          });
+      
+      legend.enter()
+          .append("text")
+          .attr("x", 20)
+          .attr("y", function(d, i){
+            return (15 + 3) * i;
+          })
+          .text(function(d){
+            return d;
+          })
+          .attr("dy", "1em")
+          .attr("font-size", "10px");
+      
+      let total_num = d3.sum(data, function(d){
+        return d.num;
+      });
+      svg.select(".labels")
+          .selectAll(".label")
+          .data(pie(data))
+          .enter()
+          .append("g")
+          .attr("class", "label")
+          .append("text")
+          .text(function(d){
+            return (Math.floor(d.data.num / total_num * 100) + "%");
+          })
+          .attr("transform", function(d){
+            return "translate(" + arc.centroid(d) + ")";
+          })
+          .attr("text-anchor", "middle")
+          .attr("dx", ".2em");
+
+      
+      d3.select("svg")
+          .append("text")
+          .attr("x", padding + chart_width / 2)
+          .attr("y", padding / 2)
+          .text("異常種類分佈")
+          .attr("text-anchor", "middle")
+          .attr("font-size", "25px");
       
       let canvas = document.getElementById('canvas');
       let context = canvas.getContext('2d');
@@ -1292,28 +1351,30 @@ export default {
           .attr("width", chart_width + 2 * padding)
           .attr("height", chart_height + 2 * padding);
 
-      let firstSvg = $('svg');
+      let firstSvg = $('#chart');
       let content = $(firstSvg).html();
       // console.log(content);
         
       context.drawSvg(content);
       let imgData = canvas.toDataURL('image/png');
-      console.log(imgData);
+      
       
       
       d3.select("#canvas")
           .attr("width", 500)
           .attr("height", 500);
+      doc.addImage(imgData, 'PNG', 105, 205, 90, 90 );
+
 
     },
     generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers){
       $('#my-table').empty();
       let jspdfTable = [];
       
-      jspdfTable.push(["極高風險警告數量", riskBreakdown.extreme]);
-      jspdfTable.push(["高風險警告數量", riskBreakdown.high]);
-      jspdfTable.push(["中風險警告數量", riskBreakdown.medium]);
-      jspdfTable.push(["低風險警告數量", riskBreakdown.low]);
+      jspdfTable.push(["極高風險異常數量", riskBreakdown.extreme]);
+      jspdfTable.push(["高風險異常數量", riskBreakdown.high]);
+      jspdfTable.push(["中風險異常數量", riskBreakdown.medium]);
+      jspdfTable.push(["低風險異常數量", riskBreakdown.low]);
       jspdfTable.push(["登入失敗次數", authLogin[0].totalFailed]);
       jspdfTable.push(["登入成功次數", authLogin[0].totalSuccess]);
       // console.log(exitProducers.length);
@@ -1343,7 +1404,10 @@ export default {
 
       doc.autoTable({html: '#my-table'});
       doc.autoTable({
-        startY: 160,
+        startY: 210,
+        margin:{
+          left: 20,
+        },
         tableWidth: 80,
         theme: 'striped',
         body: jspdfTable,
@@ -1476,6 +1540,7 @@ export default {
         ]).then((values) => {
           doc.addPage();
           // doc.setFillColor("#87cefa")
+          // doc.rect(10, 10, 190, 280);
           // doc.roundedRect(10, 10, 200, 500, 2, 3, "F")
           // console.log(this.userHash);
           // get user current risk
