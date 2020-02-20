@@ -120,8 +120,8 @@ export default {
           })
           .y(function(d){
             return y_scale(d.risk);
-          })
-         	.curve(d3.curveCardinal);
+          });
+         	
 
           // .curve(d3.curveMonotoneX);
       
@@ -812,7 +812,8 @@ export default {
           })
           .y(function(d){
             return y_scale(d.risk);
-          });
+          })
+          .curve(d3.curveCardinal);
       // Create area
       let area = d3.area()
           .x(function(d){
@@ -822,6 +823,7 @@ export default {
           .y1(function(d){
             return y_scale(d.risk);
           })
+          .curve(d3.curveCardinal);
       
       svg.append("path")
         .datum(data)
