@@ -178,8 +178,43 @@ export class APIService {
     return response.data;
   }
 
+  async getUserAlertsThreatStatistics(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/alerts?count=300&q=userid%3A`;
+    if(userHash){
+      url += userHash;
+    }
 
+    if(ts && te){
+      url += "&ts=" + ts + "&te=" + te;
+    }
+    
+    let response = await axios.get(url);
+    let scrollId = response.data.scrollId;
+    let data = response.data.data;
+    let statistics = {};
+    
+    while(data.length != 0){
+      // console.log(data);
+      data.forEach(function(d, i){
+        let threat = d.templates.threat;
+        if(threat in statistics){
+          statistics[threat] += 1;
+        }else{
+          statistics[threat] = 0
+        }
+      });
 
+      response = await axios.get(url + '&scrollId=' + scrollId);
+      data = response.data.data;
+      scrollId = response.data.scrollId;
+    }
+    // console.log(statistics);
+    
+    return statistics;
+
+  }
 
   async getRiskGraph(ts, te) {
     let token = localStorage.getItem("interset_token");

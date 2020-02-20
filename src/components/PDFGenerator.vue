@@ -1224,6 +1224,88 @@ export default {
       doc.addImage(imgData, 'PNG', 95, 150, 110, 55 );
           
     },
+    generatePDFSingleAlertThreatStatisics(doc, data){
+      $('#chart').empty();
+      $('#canvas').empty();
+
+      let chart_width = 450;
+      let chart_height = 450;
+      let padding = 30;
+
+      // console.log(data);
+      let keys = Object.keys(data);
+      data = keys.map(function(d, i){
+        return {
+          threat: d,
+          num: data[d]
+        };
+      });
+      // console.log(data);
+            
+
+      let radius = chart_height / 2;
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + 2*padding)
+          .attr("height", chart_height + 2*padding)
+          .append("g")
+          .attr("transform", "translate(" + (chart_width / 2 + padding) + ", " + (chart_height / 2 + padding) + ")");
+
+      svg.append("g")
+          .attr("class", "arcs")
+      svg.append("g")
+          .attr("class", "labels")
+      // console.log(data);
+      
+      let color_scale = d3.scaleOrdinal()
+          .domain(data.map(function(d){
+            return d.threat;
+          }))
+          .range(d3.schemeTableau10);
+      
+      let pie = d3.pie()
+          .value(function(d){
+            return d.num;
+          });
+      let arc = d3.arc()
+          .innerRadius(0)
+          .outerRadius(radius);
+      
+      svg.select(".arcs")
+          .selectAll(".arc")
+          .data(pie(data))
+          .enter()
+          .append("g")
+          .attr("class", "arc")
+          .append("path")
+          .attr("d", arc)
+          .attr("fill", function(d){
+            // console.log(d);
+            return color_scale(d.data.threat);
+          })
+          .attr("stroke", "black");
+      
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + 2 * padding)
+          .attr("height", chart_height + 2 * padding);
+
+      let firstSvg = $('svg');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      console.log(imgData);
+      
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+
+    },
     generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers){
       $('#my-table').empty();
       let jspdfTable = [];
@@ -1383,13 +1465,14 @@ export default {
           apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
           apiService.getUserWorkingHoursDaily(this.userHash),
           apiService.getUserWorkingHoursWeekly(this.userHash),
+          apiService.getUserAlertsThreatStatistics(this.userHash, this.ts, this.te),
           // table data
           apiService.getUserAlertsBreakdown(this.userHash, this.ts, this.te),
           apiService.getUserTopFailedLogin(this.userHash, this.ts, this.te),
           apiService.getUserTopExitProducers(this.userHash, this.ts, this.te),
           apiService.getUserTopScreenCaptures(this.userHash, this.ts, this.te),
           apiService.getUserTopViolationProducers(this.userHash, this.ts, this.te),
-
+          
         ]).then((values) => {
           doc.addPage();
           // doc.setFillColor("#87cefa")
@@ -1405,12 +1488,14 @@ export default {
           this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
           // working hours weekly
           this.generatePDFSingleWorkingHoursWeekly(doc, values[3].data);
+          // alert threat type
+          this.generatePDFSingleAlertThreatStatisics(doc, values[4]);
           // table data
-          let riskBreakdown = values[4].data;
-          let authLogin = values[5].data;
-          let exitProducers = values[6].data;
-          let screenCaptures = values[7].data;
-          let violationProducers = values[8].data;
+          let riskBreakdown = values[5].data;
+          let authLogin = values[6].data;
+          let exitProducers = values[7].data;
+          let screenCaptures = values[8].data;
+          let violationProducers = values[9].data;
           // console.log(failedLogin);
           // console.log(riskBreakdown);
           // console.log(exitProducers);
