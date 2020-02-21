@@ -250,6 +250,15 @@ export class APIService {
     return response.data;
   }
 
+  async getWorkingHoursWeekly() {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/users/workingHours/weekly`;
+    const response = await axios.get(url);
+    // console.log(response);
+    return response.data;
+  }
+
 
 
 

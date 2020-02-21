@@ -32,7 +32,7 @@ export default {
     },
   },
   methods: {
-    generatePDFRiskPage(doc, data){
+    generatePDFOrganRiskPage(doc, data){
       
       doc.addPage();
       doc.setFontSize(24);
@@ -79,13 +79,7 @@ export default {
           .attr("width", chart_width)
           .attr("height", chart_height);
       
-      // let x_axis = d3.axisBottom(x_scale);
-      // if(this.formData.timeType == "year"){
-      //   let time_format = d3.timeFormat('%m月');
-      //   x_axis.ticks(12)
-      //     .tickFormat(time_format);
-          
-      // }
+     
       let x_axis = d3.axisBottom(x_scale)
           .ticks(5)
           .tickFormat(time_format);
@@ -114,19 +108,16 @@ export default {
             return d.risk >= 0;
           })
           .x(function(d){
-            // console.log(x_scale(d.date));
-            
+            // console.log(x_scale(d.date))
             return x_scale(d.date);
           })
           .y(function(d){
             return y_scale(d.risk);
-          });
-         	
-
-          // .curve(d3.curveMonotoneX);
+          })
+         	.curve(d3.curveMonotoneX);
       
       svg.append( 'path' )
-        .data( data )
+        .datum( data )
         .attr( 'fill', 'none' )
         .attr( 'stroke', '#73FF36')
         .attr( 'stroke-width', 3)
@@ -146,7 +137,7 @@ export default {
       doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
       
     },
-    generatePDFAuthenicationPage(doc, data){
+    generatePDFOrganAuthenicationPage(doc, data){
       $('#chart').empty();
       $('#canvas').empty();
       doc.addPage();
@@ -260,19 +251,323 @@ export default {
       doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
       
     },
-    generatePDFWorkingHoursDaily(doc, data){
+    generatePDFOrganWorkingHours(doc, daily_data, weekly_data){
+
+      // daily data
+      daily_data = daily_data.map(function(d){
+        return {
+          slice: 1,
+          value: d.expected
+        }
+      })
+
       $('#chart').empty();
       $('#canvas').empty();
       doc.addPage();
       doc.setFontSize(24);
-      doc.text("使用者每日平均工作時數", 60, 20);
+      doc.text("使用者一天工作時數分佈", 60, 20);
 
-      let margin = {top: 30, right: 30, bottom: 30, left: 30};
-      let chart_width = 500 ;
-      let chart_height = 500 ;
+      let margin = {top: 50, right: 50, bottom: 50, left: 50};
+      let chart_width = 500 - margin.right - margin.left;
+      let chart_height = 500 - margin.top - margin.bottom;
+      let radius = chart_width / 2;
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + (margin.left + chart_width / 2) + ", " + (margin.top + chart_height / 2) + ")");
+    
+      // layer
+      svg.append("g")
+          .attr("class", "bg-pie-chart");
+      
+      svg.append("g")
+          .attr("class", "arcs");
+      
+      svg.append("g")
+          .attr("class", "bg-circle");
+
+      svg.append("g")
+          .attr("class", "labels");
+
+      // bg-pie-chart
+      let bg_color_scale = d3.scaleOrdinal()
+          .range(["#cccccc", "#ffffff"]);
+      
+      let bg_data = new Array(24).fill(1);
+      let bg_pie = d3.pie();
+      let bg_arc = d3.arc()
+          .innerRadius(0)
+          .outerRadius(radius);
+
+      let bg_arcs = svg.select(".bg-pie-chart")
+          .selectAll(".bg-arc")
+          .data(bg_pie(bg_data))
+          .enter()
+          .append("g")
+          .attr("class", "bg-arc")
+          .append("path")
+          .attr("d", bg_arc)
+          .attr("fill", function(d, i){
+            return bg_color_scale(i % 2);
+          })
+          .attr("fill-opacity", 0.2);
+
+      let bg_circle = svg.select(".bg-circle")
+          .append("circle")
+          .attr("cx", 0)
+          .attr("cy", 0)
+          .attr("r", radius)
+          .attr("stroke-width", "1px")
+          .attr("stroke", "#6c85a8")
+          .attr("fill", "none");
+
+      // pie chart arcs
+      let pie = d3.pie()
+          .value(function(d){
+            return d.slice;
+          })
+          .startAngle(-0.25 * Math.PI);
+      
+      let r_scale = d3.scaleLinear()
+          .domain([
+            0, d3.max(daily_data, function(d){
+              return d.value;
+            })
+          ])
+          .range([0, radius]);
+
+      let arc = d3.arc()
+          .innerRadius(0)
+          .outerRadius(function(d, i){
+            return r_scale(d.data.value);
+          })
+      
+      let slices = svg.select(".arcs")
+          .selectAll(".arc")
+          .data(pie(daily_data))
+          .enter()
+          .append("g")          
+          .attr("class", "arc")
+          .append("path")
+          .attr('d', arc)    
+          .attr("fill", "#97a9c2")
+          .attr("stroke", "white")
+          .style("stroke-width", "0.5px")
+          .style("opacity", 0.7);
+
+      let labels = ["12pm", "3pm", "6pm", "9pm", "12am", "3am", "6am", "9am"];
+      svg.select(".labels")
+          .selectAll(".label")
+          .data(labels)
+          .enter()
+          .append("g")
+          .attr("class", "label")
+          .append("text")
+          .text(function(d){
+            // console.log(d);
+            return d;
+          })
+          .attr("text-anchor", "middle")
+          .attr("x", function(d, i){
+            // console.log((radius+5) * Math.sin(i * Math.PI / 4) + ", " + (radius+5) * Math.cos(i * Math.PI / 4));
+            
+            return (radius+5) * Math.sin(i * Math.PI / 4);
+          })
+          .attr("y", function(d, i){
+
+            return -(radius+5) * Math.cos(i * Math.PI / 4);
+          })
+          .attr("dx", function(d, i){
+            // console.log(d);
+            
+            if(i >= 5 && i <= 7){
+              return "-1em";
+            }else if(i >= 1 && i <= 3 ){
+              return "1.5em";
+            }
+          })
+          .attr("dy", function(d, i){
+            if(i == 4){
+              return "1em";
+            }
+          });
+
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right )
+          .attr("height", chart_height + margin.top + margin.bottom );
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // doc.setFontSize(15);
+      // doc.text('風險值', 35, 18);
+      doc.addImage(imgData, 'PNG', 40, 20, 120, 120 );
+
+
+      // weekly_data
+      // process data
+      let week_data = [];
+      let sum = 0;
+      let counter = 0;
+      // console.log(data);
+      
+      for(let i=0; i<weekly_data.length; i++){
+        sum += weekly_data[i].expected;
+        counter += 1;
+        if(counter == 48){
+          // console.log(sum);
+          
+          week_data.push(sum);
+          sum = 0;
+          counter = 0;
+        }
+      }
+      labels = ["星期一", "星期二", "星期三", "星期四","星期五","星期六","星期日",]
+      week_data = week_data.map(function(d, i){
+        return {
+          label: labels[i],
+          value: d
+        };
+      });
+      bg_data = week_data.map(function(d, i){
+        return {
+          label: labels[i],
+          value: d3.max(week_data, function(d){
+            return d.value;
+          })
+        }
+      })
+      // console.log(bg_data);
+      
+      // back ground bar chart data
+      doc.setFontSize(24);
+      doc.text("使用者一週工作時數分佈", 60, 155);
+      // bar chart
+      $('#chart').empty();
+      $('#canvas').empty();
+      
+      margin = {top: 40, right: 30, bottom:30, left: 60}
+      chart_width = 600 - margin.right - margin.left;
+      chart_height = 300 - margin.top - margin.bottom;
+
+      svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+      
+      svg.append("g")
+          .attr("class", "bg-bars");
+      svg.append("g")
+          .attr("class", "x-axis");
+      svg.append("g")
+          .attr("class", "y-axis");
+      svg.append("g")
+          .attr("class", "bars");
+      
+      let x_scale = d3.scaleBand()
+          .rangeRound([0, chart_width])
+          .padding(0.05)
+          .domain(labels);
+      let y_scale = d3.scaleLinear()
+          .range([chart_height, 0])
+          .domain([0, d3.max(week_data, function(d){
+            return +d.value;
+          })]);
+      let bars = svg.select(".bars")
+          .selectAll(".bar")
+          .data(week_data)
+          .enter()
+          .append("g")
+          .attr("class", "bar")
+          .append("rect")
+          .attr("x", function(d){
+            return x_scale(d.label);
+          })
+          .attr("y", function(d){
+            return y_scale(d.value);
+          })
+          .attr("width", x_scale.bandwidth())
+          .attr("height", function(d){
+            return chart_height - y_scale(d.value);
+          })
+          .attr("fill", "#97a9c2")
+          .attr("fill-opacity", 0.8);
+      
+      svg.select(".x-axis")
+          .attr("color", "black")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .call(d3.axisBottom(x_scale))
+          .selectAll("text")
+          .attr("text-anchor", "middle");
+      // d3.select("svg").append("text")
+      //     .text("一週工作活躍程度")
+      //     .attr("x", margin.left + chart_width / 2)
+      //     .attr("y", margin.top)
+      //     .attr("dy", "-1em")
+      //     .attr("text-anchor", "middle");
+
+      d3.select(".bg-bars")
+          .selectAll("bg-bar")
+          .data(bg_data)
+          .enter()
+          .append("g")
+          .attr("class", "bg-bar")
+          .append("rect")
+          .attr("x", function(d){
+            return x_scale(d.label);
+          })
+          .attr("y", function(d){
+            return y_scale(d.value);
+          })
+          .attr("width", x_scale.bandwidth())
+          .attr("height", function(d){
+            return chart_height - y_scale(d.value);
+          })
+          .attr("fill", "#cccccc")
+          .attr("fill-opacity", 0.3);
+      // svg.select(".y-axis")
+      //     .attr("color", "black")
+      //     .call(d3.axisLeft(y_scale));
+      canvas = document.getElementById('canvas');
+      context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.right + margin.left);
+
+      firstSvg = $('#chart');
+      content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // doc.setFontSize(15);
+      // doc.text('風險值', 35, 18);
+      doc.addImage(imgData, 'PNG', 20, 160, 160, 100 );
 
     },
-    generatePDFPage(doc, data, entityName, pageType, table_flag=false, chart_flag=false){
+    generatePDFOrganPage(doc, data, entityName, pageType, table_flag=false, chart_flag=false){
       // get chinese name, title header
       let entityNameChinese = this.entityNameMapping(entityName);
       let pageTitle = "";
@@ -517,7 +812,8 @@ export default {
         apiService.getTopAccessedShares(this.ts, this.te),
         apiService.getRiskGraph(this.ts, this.te),
         apiService.getAuthenication(this.ts, this.te),
-        apiService.getWorkingHoursDaily()
+        apiService.getWorkingHoursDaily(),
+        apiService.getWorkingHoursWeekly(),
       ];
       // let exectionPromiseArray = selection.map(d => {
       //   return promiseArray[d];
@@ -551,8 +847,9 @@ export default {
         }else if(d == 13){
           //working hours daily
           exectionPromiseArray.push(promiseArray[11]);
+          exectionPromiseArray.push(promiseArray[12]);
           pdf_map[d] = pdf_counter;
-          pdf_counter += 1;
+          pdf_counter += 2;
         }
       });
       // console.log(pdf_map);
@@ -571,7 +868,7 @@ export default {
             // risk graph page
             // ==========================
             let data = values[pdf_map[11]].data;
-            this.generatePDFRiskPage(doc, data);
+            this.generatePDFOrganRiskPage(doc, data);
             selection = this.removeFromSelection(selection, 11);
           } else if(selection.includes(0)){
             // ===========================
@@ -579,7 +876,7 @@ export default {
             // ===========================
             let data = values[pdf_map[0]].data;
   
-            this.generatePDFPage(doc, data, 'user', 'risk', true, false);
+            this.generatePDFOrganPage(doc, data, 'user', 'risk', true, false);
             selection = this.removeFromSelection(selection, 0);
             
           } else if(selection.includes(1)){
@@ -588,12 +885,12 @@ export default {
             // ==========================
             let data = values[pdf_map[1]].data;
 
-            this.generatePDFPage(doc, data, 'controller', 'risk', true, false);
+            this.generatePDFOrganPage(doc, data, 'controller', 'risk', true, false);
             // =============================
             // top accessed controllers page
             // =============================
             data = values[pdf_map[1] + 1];
-            this.generatePDFPage(doc, data, 'controller', 'access', true, true);
+            this.generatePDFOrganPage(doc, data, 'controller', 'access', true, true);
             selection = this.removeFromSelection(selection, 1);
           } else if(selection.includes(2)){
             // ==========================
@@ -601,12 +898,12 @@ export default {
             // ==========================
             let data = values[pdf_map[2]].data;
 
-            this.generatePDFPage(doc, data, 'project', 'risk', true, false);
+            this.generatePDFOrganPage(doc, data, 'project', 'risk', true, false);
             // =============================
             // top accessed projects page
             // =============================
             data = values[pdf_map[2] + 1];
-            this.generatePDFPage(doc, data, 'project', 'access', true, true);
+            this.generatePDFOrganPage(doc, data, 'project', 'access', true, true);
             selection = this.removeFromSelection(selection, 2);
           } else if(selection.includes(3)){
             // ==========================
@@ -614,12 +911,12 @@ export default {
             // ==========================
             let data = values[pdf_map[3]].data;
             
-            this.generatePDFPage(doc, data, 'resource', 'risk', true, false);
+            this.generatePDFOrganPage(doc, data, 'resource', 'risk', true, false);
             // =============================
             // top accessed resources page
             // =============================
             data = values[pdf_map[3] + 1];
-            this.generatePDFPage(doc, data, 'resource', 'access', true, true);
+            this.generatePDFOrganPage(doc, data, 'resource', 'access', true, true);
             selection = this.removeFromSelection(selection, 3);
           } else if(selection.includes(4)){
             // ==========================
@@ -627,12 +924,12 @@ export default {
             // ==========================
             let data = values[pdf_map[4]].data;
             
-            this.generatePDFPage(doc, data, 'share', 'risk', true, false);
+            this.generatePDFOrganPage(doc, data, 'share', 'risk', true, false);
             // =============================
             // top accessed share page
             // =============================
             data = values[pdf_map[4] + 1];
-            this.generatePDFPage(doc, data, 'share', 'access', true, true);
+            this.generatePDFOrganPage(doc, data, 'share', 'access', true, true);
             selection = this.removeFromSelection(selection, 4);
           } else if(selection.includes(12)){
             // ==========================
@@ -640,12 +937,13 @@ export default {
             // ==========================
             let data = values[pdf_map[12]].data;
             // console.log(data);
-            this.generatePDFAuthenicationPage(doc, data);
+            this.generatePDFOrganAuthenicationPage(doc, data);
             selection = this.removeFromSelection(selection, 12);
           } else if(selection.includes(13)){
-            let data = values[pdf_map[13]].data;
+            let daily_data = values[pdf_map[13]].data;
+            let weekly_data = values[pdf_map[13] + 1].data;
             // console.log(data);
-            this.generatePDFWorkingHoursDaily(doc, data);
+            this.generatePDFOrganWorkingHours(doc, daily_data, weekly_data);
           }
         }
         doc.save('test.pdf');
@@ -777,15 +1075,15 @@ export default {
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
       // scale
       let x_scale = d3.scaleTime()
-          .domain(d3.extent(data, function(d) { return d.date; }))
-          // .domain([
-          //   d3.min(data, function(d){
-          //     return d.date;
-          //   }),
-          //   d3.max(data, function(d){
-          //     return d.date;
-          //   })
-          // ])
+          // .domain(d3.extent(data, function(d) { return d.date; }))
+          .domain([
+            d3.min(data, function(d){
+              return d.date;
+            }),
+            d3.max(data, function(d){
+              return d.date;
+            })
+          ])
           .range([0, chart_width]);
       
       let y_scale = d3.scaleLinear()
@@ -794,7 +1092,7 @@ export default {
           ])
           .range([chart_height, 0]);
       let x_axis = d3.axisBottom(x_scale)
-          .ticks(4)
+          .ticks(5)
           .tickFormat(time_format);
       
       let y_axis = d3.axisLeft(y_scale)
@@ -813,7 +1111,7 @@ export default {
           .y(function(d){
             return y_scale(d.risk);
           })
-          .curve(d3.curveCardinal);
+          .curve(d3.curveMonotoneX);
       // Create area
       let area = d3.area()
           .x(function(d){
@@ -823,7 +1121,7 @@ export default {
           .y1(function(d){
             return y_scale(d.risk);
           })
-          .curve(d3.curveCardinal);
+          .curve(d3.curveMonotoneX);
       
       svg.append("path")
         .datum(data)
