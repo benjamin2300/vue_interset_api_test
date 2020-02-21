@@ -65,7 +65,7 @@ export class APIService {
     axios.defaults.headers.common['Authorization'] = token;
     let url = `${API_URL}/api/search/0/users/`
     if(userHash){
-      url += userHash + '/riskGraph?count=100&tz=UTC%2B8';
+      url += userHash + '/riskGraph?interval=day&tz=UTC%2B8';
     }
     if(ts && te){
       url = url + '&ts=' + ts + '&te=' + te;
@@ -211,9 +211,41 @@ export class APIService {
       scrollId = response.data.scrollId;
     }
     // console.log(statistics);
-    
     return statistics;
+  }
 
+  async getMultiUserRiskGraph(userHashList, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    
+    let exectionPromiseArray = [];
+    for(let i=0; i<userHashList.length; i++){
+      exectionPromiseArray.push(this.getUserRiskGraph(userHashList[i], ts, te));
+    }
+    // userHashList.forEach(function(d){
+    //   exectionPromiseArray.push(getUserRiskGraph(d, ts, te))
+    // });
+    let re_data = [];
+    await Promise.all(
+      exectionPromiseArray
+    ).then((values) => {
+      // console.log(values);
+      values.forEach(function(d, i){
+        let td = d.data.map(function(dd){
+          let date = new Date(dd.timestamp*1000);
+          return {
+            // name: userNameList[i],
+            risk: dd.risk,
+            date: date
+          }
+        })
+        td.pop();
+        td.shift();
+        re_data.push(td);
+      })
+      
+    })
+    return re_data;
   }
 
   async getRiskGraph(ts, te) {

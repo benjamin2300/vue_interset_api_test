@@ -24,6 +24,8 @@ export default {
       te: "",
       userName: "",
       userHash: "",
+      userNameList: [],
+      userHashList: [],
     }
   },
   props: {
@@ -81,7 +83,7 @@ export default {
       
      
       let x_axis = d3.axisBottom(x_scale)
-          .ticks(5)
+          .ticks(6)
           .tickFormat(time_format);
       
       let y_axis = d3.axisLeft(y_scale)
@@ -146,17 +148,21 @@ export default {
 
       let m = 2;
       let keys = ['totalSuccess', 'totalFailed'];
-      let margin = {top: 20, right: 20, bottom: 70, left: 40};
-      let chart_width = 500 ;
-      let chart_height = 350 ;
+      let margin = {top: 50, right: 50, bottom: 70, left: 40};
+      let chart_width = 500 - margin.right - margin.left;
+      let chart_height = 350 - margin.top - margin.bottom;
       let svg = d3.select("#chart")
           .append('svg')
-          .attr("width", chart_width)
-          .attr("height", chart_height);
+          .attr("width", chart_width + margin.right + margin.left)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top +")");
       
       let x0_scale = d3.scaleBand()
-            .domain(data.map(function(d){return d.entityName;}))
-            .rangeRound([margin.left, chart_width - margin.right])
+            .domain(data.map(function(d){
+              return d.entityName;}
+            ))
+            .rangeRound([0, chart_width])
             .paddingInner(0.2);
       
       let x1_scale = d3.scaleBand()
@@ -164,8 +170,12 @@ export default {
             .rangeRound([0, x0_scale.bandwidth()]);
       
       let y_scale = d3.scaleLinear()
-            .domain([0, d3.max(data, function(d){ return d3.max(keys, function(key){return d[key];})})])
-            .range([chart_height - margin.bottom, margin.top]);
+            .domain([0, d3.max(data, function(d){ 
+              return d3.max(keys, function(key){
+                return d[key];}
+              )
+            })])
+            .range([chart_height, 0]);
 
       let z_scale = d3.scaleOrdinal()
             .range(["#41ef08", "#e93b26"]);
@@ -177,7 +187,7 @@ export default {
       svg.append("g")
         .attr("class", "x-axis")
         .style('color', 'black')
-        .attr("transform", "translate(0, " + (chart_height - margin.bottom) + ")")
+        .attr("transform", "translate(0, " + (chart_height) + ")")
         .call(d3.axisBottom(x0_scale))
         .selectAll("text")
         .style("text-anchor", "end")
@@ -188,7 +198,7 @@ export default {
       svg.append("g")
         .attr("class", "y-axis")
         .style('color', 'black')
-        .attr("transform", "translate(" + margin.left + ", 0)")
+        // .attr("transform", "translate(" + margin.left + ", 0)")
         .call(d3.axisLeft(y_scale));
 
       svg.append("g")
@@ -205,24 +215,24 @@ export default {
         .attr("x", function(d){return x1_scale(d.key);})
         .attr("y", function(d){return y_scale(d.value);})
         .attr("width", x1_scale.bandwidth())
-        .attr("height", function(d){return chart_height - margin.bottom - y_scale(d.value)})
+        .attr("height", function(d){return chart_height - y_scale(d.value)})
         .attr("fill", function(d){return z_scale(d.key)});
       
-      // console.log(keys);
-      // console.log(keys.slice());
-      // console.log(keys.slice().reverse());
-      
-      
-      let legend = svg.selectAll(".legend")
-        .attr("font-family", "sans-serif")
-        .attr("font-size", 10)
-        .attr("text-anchor", "end")
+      let legend = d3.select('svg')
+        .append("g")
+        .attr("class", "legends")
+        .selectAll(".legend")
         .data(keys.slice().reverse())
         .enter()
         .append("g")
         .attr("class", "legend")
-        .attr("transform", function(d, i){return "translate(0," + i * 20 + ")"})
+        .attr("transform", function(d, i){
+          return "translate(80," + (i * 20 + 5) + ")"
+        })
         .style("opacity", "1");
+        // // .attr("font-family", "sans-serif")
+        // .attr("font-size", 10)
+        // .attr("text-anchor", "end");
       
       legend.append("rect")
         .attr("x", chart_width - 20)
@@ -1058,9 +1068,10 @@ export default {
       
       data = data.map(function(d){ return {date: new Date(d.timestamp * 1000), risk: d.risk};});
       // console.log(data);
+      // console.log(data);
       
-      data.pop();
-      data.shift();
+      // data.pop();
+      // data.shift();
       // console.log(data);
       let margin = {top: 70, right: 30, bottom: 30, left: 60};
       let chart_width = 750 - margin.left - margin.right ;
@@ -1092,7 +1103,7 @@ export default {
           ])
           .range([chart_height, 0]);
       let x_axis = d3.axisBottom(x_scale)
-          .ticks(5)
+          .ticks(6)
           .tickFormat(time_format);
       
       let y_axis = d3.axisLeft(y_scale)
@@ -1871,6 +1882,229 @@ export default {
         });
       });
     },
+    generatePDFMultiRiskGraph(doc, data, userNameList){
+      // console.log(data);
+      $('#chart').empty();
+      $('#canvas').empty();
+      // console.log(data);
+      
+      
+      let time_format = d3.timeFormat('%m/%d');
+      let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
+
+      // data.pop();
+      // data.shift();
+      let margin = {top: 30, right: 100, bottom: 30, left: 60};
+      let chart_width = 750 - margin.left - margin.right ;
+      let chart_height = 350 -margin.top - margin.bottom;
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+      // layer
+      svg.append("g")
+          .attr("class", "lines");
+
+      svg.append("g")
+          .attr("class", "x-axis");
+      
+      svg.append("g")
+          .attr("class", "y-axis");
+
+      svg.append("g")
+          .attr("class", "legends")
+      
+      let x_scale = d3.scaleTime()
+          // .domain(d3.extent(data, function(d) { return d.date; }))
+          .domain([
+            d3.min(data, function(d){
+                return d3.min(d, function(dd){
+                  return dd.date;
+                })
+            }),
+            d3.max(data, function(d){
+              return d3.max(d, function(dd){
+                return dd.date;
+              })
+            })
+          ])
+          .range([0, chart_width]);
+      
+      
+      let y_scale = d3.scaleLinear()
+          .domain([
+            0, 100
+          ])
+          .range([chart_height, 0]);
+      let x_axis = d3.axisBottom(x_scale)
+          .ticks(6)
+          .tickFormat(time_format);
+      
+      let y_axis = d3.axisLeft(y_scale)
+          .ticks(10);
+      let color_scale = d3.scaleOrdinal()
+          .domain(userNameList)
+          .range(d3.schemeCategory10);
+
+      // Create Line
+      let line = d3.line()
+          .defined(function(d){
+            return d.risk >= 0;
+          })
+          .x(function(d){
+            // console.log(x_scale(d.date));
+            return x_scale(d.date);
+          })
+          .y(function(d){
+            return y_scale(d.risk);
+          })
+          .curve(d3.curveMonotoneX);
+      
+      svg.select(".lines")
+          .selectAll(".line")
+          .data(data)
+          .enter()
+          .append("g")
+          .attr("class", "line")
+          .append("path")
+          .attr("fill", "none")
+          .attr("stroke", function(d, i){
+            return color_scale(userNameList[i])
+          })
+          .attr("stroke-width", "1px")
+          .attr("d", function(d){
+            return line(d);
+          });
+      svg.select(".x-axis")
+          .style('color', 'black')
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .call(x_axis);
+      
+      svg.select(".y-axis")
+          .style('color', 'black')
+          .call(y_axis);
+
+      // svg.select(".legends")
+      //     .attr("transform", "translate(",)
+
+    },
+    pdfGenerateMultiUserReport(){
+      // 1st Page
+      let doc = new jsPDF();
+      doc.setFont('msyh');
+      let month = [1,2,3,4,5,6,7,8,9,10,11,12]
+      
+      doc.setFontSize(24);
+      doc.text('Interset多人使用者報表', 70, 150);
+      
+      if(this.formData.timeType == "year"){
+        doc.setFontSize(20);
+        doc.text(this.formData.year.getFullYear() + "年報", 85, 160);
+      }else if(this.formData.timeType == "season"){
+        doc.setFontSize(20);
+        let t = this.formData.season_year.getFullYear();
+        if(this.formData.season_q == "Q1"){
+          t += "(" + "Q1" + ")";
+        }else if(this.formData.season_q == "Q2"){
+          t += "(" + "Q2" + ")";
+        }else if(this.formData.season_q == "Q3"){
+          t += "(" + "Q3" + ")";
+        }else if(this.formData.season_q == "Q4"){
+          t += "(" + "Q4" + ")";
+        }
+        doc.text(t + "季報", 80, 160);
+      } else if(this.formData.timeType == "month"){
+        // console.log(this.formData.timeType);
+        
+        doc.setFontSize(20);
+        let t = this.formData.month.getFullYear();
+        t += "/" + (this.formData.month.getMonth()+1) + "月";
+        doc.text(t + "月報", 80, 160);
+      }
+
+
+
+      doc.setFontSize(10);
+      // console.log(this.formData);
+
+      if(this.formData.timeType == "year"){
+        this.ts = this.formData.year;
+        this.te = new Date(this.ts.getFullYear()+1, 0, 1);
+      }else if(this.formData.timeType == "season"){
+        let year = this.formData.season_year;
+        if(this.formData.season_q == "Q1"){
+          this.ts = new Date(year.getFullYear(), 0, 1);
+          this.te = new Date(year.getFullYear(), 3, 1);
+        }else if(this.formData.season_q == "Q2"){
+          this.ts = new Date(year.getFullYear(), 3, 1);
+          this.te = new Date(year.getFullYear(), 6, 1);
+        }else if(this.formData.season_q == "Q3"){
+          this.ts = new Date(year.getFullYear(), 6, 1);
+          this.te = new Date(year.getFullYear(), 9, 1);
+        }else if(this.formData.season_q == "Q4"){
+          this.ts = new Date(year.getFullYear(), 9, 1);
+          this.te = new Date(year.getFullYear()+1, 1, 1);
+        }
+      }else if(this.formData.timeType == "month"){
+        let month = this.formData.month;
+        this.ts = new Date(month.getFullYear(), month.getMonth(), 1);
+        this.te = new Date(month.getFullYear(), month.getMonth()+1, 1);
+
+      }else if(this.formData.timeType == "custom"){
+        this.ts = this.formData.daterange[0];
+        this.te = this.formData.daterange[1];
+      }
+      // console.log(this.ts);
+      // console.log(this.te);
+      
+      
+      this.ts = this.ts.getTime();
+      this.te = this.te.getTime();
+
+      let new_ts = new Date(this.ts);
+      let new_te = new Date(this.te);
+
+      let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
+                      + " 到 " + 
+                      new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate(); 
+      doc.text(date_range, 85, 170);
+
+      // 2nd Page
+      // console.log(this.formData.userList);
+      // console.log(this.userNameList);
+      // console.log(this.ts);
+      // // let a = [];
+      // console.log(this.formData.userList[0]);
+      // console.log(this.formData.allUserList[0]);
+      let allUserList = this.formData.allUserList;
+      let nameList = [];
+      let hashList = [];
+      // console.log(allUserList);
+
+      this.formData.userList.forEach(function(d){
+        
+        nameList.push(allUserList[d].label);
+        hashList.push(allUserList[d].hash)
+      })
+      this.userNameList = nameList;
+      this.userHashList = hashList;
+
+      Promise.all([
+        apiService.getMultiUserRiskGraph(this.userHashList, this.ts, this.te)
+      ]).then((values) => {
+        this.generatePDFMultiRiskGraph(doc, values[0], this.userNameList);
+      })
+      
+      
+      
+    
+      
+
+
+    },
     pdfGenerate(){
 
       if(this.formData.contentList.length == 0){
@@ -1882,7 +2116,7 @@ export default {
         }else if(this.formData.formType == "single-user"){
           this.pdfGenerateSingleUserReport();
         }else if(this.formData.formType == "multi-user"){
-
+          this.pdfGenerateMultiUserReport();
         }
 
 

@@ -31,7 +31,7 @@
         placeholder="選擇年"
         v-show='formData.timeType === "season"'>
         </el-date-picker>
-        <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="请選擇" class="season-q-select">
+        <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="請選擇季度" class="season-q-select">
           <el-option
             v-for="item in options"
             :key="item.value"
@@ -45,7 +45,7 @@
           type="daterange"
           range-separator="至"
           start-placeholder="開始日期"
-          end-placeholder="结束日期"
+          end-placeholder="結束日期"
           unlink-panels
           >
         </el-date-picker>
@@ -55,7 +55,7 @@
         <div class="user-transfer-body">
           <el-transfer 
             v-model="formData.userList" 
-            :data="allUserList"
+            :data="formData.allUserList"
             :titles="['可選擇使用者', '已選擇使用者']" 
             :format="{
               noChecked: '${total}',
@@ -136,7 +136,8 @@ export default {
         season_q:"",
         daterange:"",
         contentList: [],
-        userList: []
+        userList: [],
+        allUserList: [],
       },
       body: "",
       options: [{
@@ -152,10 +153,10 @@ export default {
         value: 'Q4',
         label: 'Q4(10月～12月)'
       }],
-      allUserList: [],
+      // allUserList: [],
       allContentList: generateAllContentList(),
       userLeftCheck: [],
-      contentLeftCheck: []
+      contentLeftCheck: [],
     };
   },
   mounted(){
@@ -169,10 +170,11 @@ export default {
       for(let i=0; i<userList.length; i++){
         data.push({
           key: i,
+          hash: userList[i].id,
           label: userList[i].name
         });
       }
-      this.allUserList = data;
+      this.formData.allUserList = data;
       // this.userLeftCheck = Array.from(new Array(data.length),(val,index)=>index);
     });
     this.contentLeftCheck = [0,1,2,3,4,5,11,12,13];

@@ -30,12 +30,13 @@
         placeholder="選擇年"
         v-show='formData.timeType === "season"'>
         </el-date-picker>
-        <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="请选择" class="season-q-select">
+        <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="請選擇季度" class="season-q-select">
           <el-option
             v-for="item in options"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
+            :value="item.value"
+            >
           </el-option>
         </el-select>
         <el-date-picker
@@ -43,8 +44,8 @@
           v-show='formData.timeType === "custom"'
           type="daterange"
           range-separator="至"
-          start-placeholder="开始日期"
-          end-placeholder="结束日期"
+          start-placeholder="開始日期"
+          end-placeholder="結束日期"
           unlink-panels
           >
         </el-date-picker>
