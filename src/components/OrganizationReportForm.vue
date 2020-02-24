@@ -70,7 +70,7 @@
       </div> 
       
       <div class="pdf-generate-button-div">
-        <PDFGenerator :formData="formData" />
+        <OrganizationReportGenerator :formData="formData" />
       </div>
       
 
@@ -80,12 +80,12 @@
 </template>
 
 <script>
-import PDFGenerator from '@/components/PDFGenerator'
+import OrganizationReportGenerator from '@/components/OrganizationReportGenerator'
 
 export default {
   name: 'organizationReportForm',
   components: {
-    PDFGenerator
+    OrganizationReportGenerator
   },
   data(){
     const generateAllContentList = _ => {

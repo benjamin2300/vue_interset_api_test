@@ -86,17 +86,15 @@
       </div> 
       
       <div class="pdf-generate-button-div">
-        <PDFGenerator :formData="formData" />
+        <MultiUserReportGenerator :formData="formData" />
       </div>
       
-
     </el-form>
   </div>
-
 </template>
 
 <script>
-import PDFGenerator from '@/components/PDFGenerator'
+import MultiUserReportGenerator from '@/components/MultiUserReportGenerator'
 import {APIService} from '@/APIService.js';
 // import { log } from 'util';
 import $ from 'jquery';
@@ -105,7 +103,7 @@ const apiService = new APIService();
 export default {
   name: 'multiUserReportForm',
   components: {
-    PDFGenerator
+    MultiUserReportGenerator
   },
   data(){
     const generateAllContentList = _ => {

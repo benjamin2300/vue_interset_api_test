@@ -67,26 +67,9 @@
         </el-date-picker>
         </div>
       </el-form-item>
-      
-      <!-- <div class="transfer-div">
-        <div class="transfer-label"><span>選擇內容</span></div>
-        <div class="transfer-body">
-          <el-transfer 
-            v-model="formData.contentList" 
-            :data="allContentList"
-            :titles="['可選擇項目', '已選擇的項目']" 
-            :format="{
-              noChecked: '${total}',
-              hasChecked: '${checked}/${total}'
-            }"
-            :left-default-checked="contentLeftCheck"
-            >
-          </el-transfer>
-        </div>
-      </div>  -->
-      
+    
       <div class="pdf-generate-button-div">
-        <PDFGenerator :formData="formData" />
+        <SingleUserReportGenerator :formData="formData" />
       </div>
       
 
@@ -96,7 +79,7 @@
 </template>
 
 <script>
-import PDFGenerator from '@/components/PDFGenerator'
+import SingleUserReportGenerator from '@/components/SingleUserReportGenerator'
 import {APIService} from '@/APIService.js';
 // import { log } from 'util';
 import $ from 'jquery';
@@ -105,7 +88,7 @@ const apiService = new APIService();
 export default {
   name: 'singleReportForm',
   components: {
-    PDFGenerator
+    SingleUserReportGenerator
   },
   data(){
     const generateAllContentList = _ => {

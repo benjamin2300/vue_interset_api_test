@@ -77,13 +77,6 @@ export default {
   // components:{
   //   OrganiztionReportForm
   // },
-
-  computed:{
-    menuList(){
-      return this.$router.options.routes[0].children;
-    }
-  },
-  
   methods: {
 
     htmlGenerate(){

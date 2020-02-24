@@ -13,6 +13,7 @@
 import {APIService} from '@/APIService.js';
 // import { log } from 'util';
 import $ from 'jquery';
+
 const apiService = new APIService();
 
 export default {
@@ -227,9 +228,9 @@ export default {
         .append("g")
         .attr("class", "legend")
         .attr("transform", function(d, i){
-          return "translate(80," + (i * 20 + 5) + ")"
-        })
-        .style("opacity", "1");
+          return "translate(80," + (i * 20 + 5) + ")";
+        });
+        // .style("opacity", "1");
         // // .attr("font-family", "sans-serif")
         // .attr("font-size", 10)
         // .attr("text-anchor", "end");
@@ -1870,10 +1871,6 @@ export default {
           let exitProducers = values[7].data;
           let screenCaptures = values[8].data;
           let violationProducers = values[9].data;
-          // console.log(failedLogin);
-          // console.log(riskBreakdown);
-          // console.log(exitProducers);
-          
           
           
           this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);
@@ -1881,6 +1878,171 @@ export default {
           
         });
       });
+    },
+    generatePDFMultiAlertsBreakdown(doc, data, userNameList){
+      $('#chart').empty();
+      $('#canvas').empty();
+
+      // stakced bar chart
+      let margin = {top: 40, right: 120, bottom: 30, left: 40}
+      let chart_width = 800 - margin.left - margin.right;
+      let chart_height = 500 - margin.top - margin.bottom;
+
+      let alert_type = ["low", "medium", "high", "extreme"];
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", "+ margin.top + ")");
+      
+      //layer
+      svg.append("g")
+          .attr("class", "grouped-chart");
+      
+      svg.append("g")
+          .attr("class", "x-axis");
+          
+      svg.append("g")
+          .attr("class", "y-axis");
+      
+      svg.append("g")
+          .attr("class", "legend");
+      
+
+      // scale
+      let x0_scale = d3.scaleBand()
+          .domain(userNameList)
+          .range([0, chart_width])
+          .padding(0.2);
+      
+      let x1_scale = d3.scaleBand()
+          .domain(alert_type)
+          .range([0, x0_scale.bandwidth()]);
+
+      let y_scale = d3.scaleLinear()
+          .domain([0, d3.max(data, function(d){
+            return d.low;
+          })])
+          .range([chart_height, 0]);
+      
+      let color_scale = d3.scaleOrdinal()
+          .domain(alert_type)
+          .range(["#cccccc", "#ffce00", "#ff8c00", "#940f23"])
+
+      svg.select(".grouped-chart")
+          .selectAll(".g-bars")
+          .data(data)
+          .enter()
+          .append("g")
+          .attr("class", "g-bars")
+          .attr("transform", function(d, i){
+            return "translate(" + x0_scale(userNameList[i]) + ", " + "0)" ;
+          })
+          .selectAll("rect")
+          .data(function(d){
+            return alert_type.map(function(key){
+              return {
+                key: key,
+                value: d[key]
+              };
+            });
+          })
+          .enter()
+          .append("rect")
+          .attr("x", function(d, i){
+            return x1_scale(d.key);
+          })
+          .attr("y", function(d){
+            return y_scale(d.value);
+          })
+          .attr("width", x1_scale.bandwidth())
+          .attr("height", function(d){
+            return chart_height - y_scale(d.value);
+          })
+          .attr("fill", function(d, i){
+            return color_scale(d.key)
+          });
+
+      svg.select(".grouped-chart")
+          .selectAll(".g-labels")
+          .data(data)
+          .enter()
+          .append("g")
+          .attr("class", "g-labels")
+          .attr("transform", function(d, i){
+            return "translate(" + x0_scale(userNameList[i]) + ", " + "0)" ;
+          })
+          .selectAll("text")
+          .data(function(d){
+            return alert_type.map(function(key){
+              return {
+                key: key,
+                value: d[key]
+              };
+            });
+          })
+          .enter()
+          .append("text")
+          .attr("x", function(d, i){
+            return x1_scale(d.key) + x1_scale.bandwidth() / 2;
+          })
+          .text(function(d){
+            return d.value;
+          })
+          .attr("text-anchor", "middle")
+          .attr("y", function(d){
+            return y_scale(d.value) - 13;
+          })
+          .attr("font-size", "15px");
+
+      svg.select(".x-axis")
+          .attr("transform", "translate(0," + chart_height + ")")
+          .attr("color", "black")
+          .call(d3.axisBottom(x0_scale));
+      
+      svg.select(".y-axis")
+          .attr("color", "black")
+          .call(d3.axisLeft(y_scale))
+      
+      // let stacked = d3.stack()
+      //     .keys(alert_type)(data);
+      
+      // console.log(stacked);
+      
+      // d3.select(".stacked-chart")
+      //     .selectAll(".stacked-bar")
+      //     .data(stacked)
+      //     .enter()
+      //     .append("g")
+      //     .attr("class", "stacked-bar")
+      //     .attr("fill", function(d){
+      //       // console.log(d.key);
+            
+      //       return color_scale(d.key);
+      //     })
+      //     .selectAll("rect")
+      //     .data(function(d){
+      //       // console.log(d);
+            
+      //       return d;
+      //     })
+      //     .enter()
+      //     .append("rect")
+      //     .attr("x", function(d, i){
+      //       console.log(x_scale(userNameList[i]));
+            
+      //       return x_scale(userNameList[i]);
+      //     })
+      //     .attr("y", function(d){
+      //       return y_scale(d[1]);
+      //     })
+      //     .attr("height", function(d){
+      //       return y_scale(d[0]) - y_scale(d[1]);
+      //     })
+      //     .attr("width", x_scale.bandwidth());
+          
     },
     generatePDFMultiRiskGraph(doc, data, userNameList){
       // console.log(data);
@@ -1894,8 +2056,8 @@ export default {
 
       // data.pop();
       // data.shift();
-      let margin = {top: 30, right: 100, bottom: 30, left: 60};
-      let chart_width = 750 - margin.left - margin.right ;
+      let margin = {top: 30, right: 150, bottom: 30, left: 60};
+      let chart_width = 800 - margin.left - margin.right ;
       let chart_height = 350 -margin.top - margin.bottom;
 
       let svg = d3.select("#chart")
@@ -1987,9 +2149,36 @@ export default {
           .style('color', 'black')
           .call(y_axis);
 
-      // svg.select(".legends")
-      //     .attr("transform", "translate(",)
+      let legend = svg.select(".legends")
+          .attr("transform", "translate(" + (chart_width)+ ", " + margin.top / 2 + ")")
+          .selectAll(".legend")
+          .data(userNameList)
+          .enter()
+          .append("g")
+          .attr("class", "legend");
 
+      legend.append("rect")
+          .attr("x", 0)
+          .attr("y", function(d, i){
+            return (20 * i + 5);
+          })
+          .attr("width", 15)
+          .attr("height", 14)
+          .attr("fill", function(d, i){
+            return color_scale(d);
+          });
+
+      legend.append("text")
+          .attr("x", 20)
+          .attr("y", function(d, i){
+            return (20 * i + 5);
+          })
+          .attr("text-anchor", "left")
+          .text(function(d){
+            return d;
+          })
+          .attr("font-size", "13px")
+          .attr("dy", "0.5em");
     },
     pdfGenerateMultiUserReport(){
       // 1st Page
@@ -2065,7 +2254,7 @@ export default {
       this.te = this.te.getTime();
 
       let new_ts = new Date(this.ts);
-      let new_te = new Date(this.te);
+      let new_te = new Date(this.te - 24*60*60*1000);
 
       let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
                       + " 到 " + 
@@ -2087,15 +2276,20 @@ export default {
       this.formData.userList.forEach(function(d){
         
         nameList.push(allUserList[d].label);
-        hashList.push(allUserList[d].hash)
+        hashList.push(allUserList[d].hash);
       })
       this.userNameList = nameList;
       this.userHashList = hashList;
 
       Promise.all([
-        apiService.getMultiUserRiskGraph(this.userHashList, this.ts, this.te)
+        apiService.getMultiUserRiskGraph(this.userHashList, this.ts, this.te),
+        apiService.getMultiUserAlertsBreakdown(this.userHashList, this.ts, this.te),
+
       ]).then((values) => {
         this.generatePDFMultiRiskGraph(doc, values[0], this.userNameList);
+        // console.log(values[1]);
+        
+        // this.generatePDFMultiAlertsBreakdown(doc, values[1], this.userNameList);
       })
       
       

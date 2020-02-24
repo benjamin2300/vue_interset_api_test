@@ -214,6 +214,8 @@ export class APIService {
     return statistics;
   }
 
+
+
   async getMultiUserRiskGraph(userHashList, ts, te){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
@@ -222,9 +224,6 @@ export class APIService {
     for(let i=0; i<userHashList.length; i++){
       exectionPromiseArray.push(this.getUserRiskGraph(userHashList[i], ts, te));
     }
-    // userHashList.forEach(function(d){
-    //   exectionPromiseArray.push(getUserRiskGraph(d, ts, te))
-    // });
     let re_data = [];
     await Promise.all(
       exectionPromiseArray
@@ -245,6 +244,25 @@ export class APIService {
       })
       
     })
+    return re_data;
+  }
+
+  async getMultiUserAlertsBreakdown(userHashList, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+
+    let exectionPromiseArray = [];
+    for(let i=0; i<userHashList.length; i++){
+      exectionPromiseArray.push(this.getUserAlertsBreakdown(userHashList[i], ts, te));
+    }
+    let re_data = [];
+    await Promise.all(
+      exectionPromiseArray
+    ).then((values) => {
+      values.forEach(function(d, i){
+        re_data.push(d.data);
+      });
+    });
     return re_data;
   }
 
