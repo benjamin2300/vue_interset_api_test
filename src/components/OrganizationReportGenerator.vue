@@ -29,6 +29,26 @@ export default {
   },
   methods: {
     generatePDFOrganRiskStream(doc, data){
+      console.log(data);
+      let keys = data.categories;
+      data = data.breakdown.map(function(d){
+        let risk = d.risk;
+        let re_data = {};
+        re_data['risk'] = risk;
+        re_data['timestamp'] = new Date(d.timestamp * 1000)
+        keys.forEach(function(key){
+          if(key in d.values){
+            // console.log(key);
+            // console.log(d.values[key]);
+            
+            re_data[key] = risk * d.values[key].contribution / 1000;
+          }else{
+            re_data[key] = 0;
+          }
+        })
+        return re_data
+      })
+      console.log(data);
       
     },
     generatePDFOrganRiskPage(doc, data){
@@ -783,6 +803,7 @@ export default {
         apiService.getAuthenication(this.ts, this.te),
         apiService.getWorkingHoursDaily(),
         apiService.getWorkingHoursWeekly(),
+        apiService.getRiskStream(this.ts, this.te)
       ];
       // let exectionPromiseArray = selection.map(d => {
       //   return promiseArray[d];
@@ -819,6 +840,10 @@ export default {
           exectionPromiseArray.push(promiseArray[12]);
           pdf_map[d] = pdf_counter;
           pdf_counter += 2;
+        }else if(d == 14){
+          exectionPromiseArray.push(promiseArray[13])
+          pdf_map[d] = pdf_counter;
+          pdf_counter += 1;
         }
       });
       // console.log(pdf_map);
@@ -913,6 +938,11 @@ export default {
             let weekly_data = values[pdf_map[13] + 1].data;
             // console.log(data);
             this.generatePDFOrganWorkingHours(doc, daily_data, weekly_data);
+            selection = this.removeFromSelection(selection, 13);
+          } else if(selection.includes(14)){
+            let data = values[pdf_map[14]].data;
+            this.generatePDFOrganRiskStream(doc, data);
+            selection = this.removeFromSelection(selection, 14);
           }
         }
         doc.save('test.pdf');

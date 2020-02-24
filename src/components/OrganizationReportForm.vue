@@ -97,7 +97,7 @@ export default {
           label: data_type[i]
         });
       }
-      const other_data = ["整體風險值", "登入成功/失敗", "日工作時數分布"]
+      const other_data = ["整體風險值", "登入成功/失敗", "日/周工作時數分布", "威脅風險分佈"]
       for(let i=0; i<other_data.length; i++){
         data.push({
           key: 11 + i,
@@ -132,7 +132,7 @@ export default {
         label: 'Q4(10月～12月)'
       }],
       allContentList: generateAllContentList(),
-      contentLeftCheck: [0,1,2,3,4,5,11,12,13],
+      contentLeftCheck: [0,1,2,3,4,5,11,12,13,14],
     };
   },
   mounted(){

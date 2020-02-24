@@ -309,7 +309,14 @@ export class APIService {
     return response.data;
   }
 
-
+  async getRiskStream(ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let url = `${API_URL}/api/search/0/riskGraph/breakdown?count=100&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
+    const response = await axios.get(url);
+    // console.log(response);
+    return response.data;
+  }
 
 
   // get top risky users
