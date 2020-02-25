@@ -242,7 +242,6 @@ export class APIService {
         td.shift();
         re_data.push(td);
       })
-      
     })
     return re_data;
   }
@@ -265,6 +264,27 @@ export class APIService {
     });
     return re_data;
   }
+
+  async getMultiUserWorkingHoursDaily(userHashList){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    let exectionPromiseArray = [];
+    for(let i=0; i<userHashList.length; i++){
+      exectionPromiseArray.push(this.getUserWorkingHoursDaily(userHashList[i]));
+    }
+    let re_data = [];
+    await Promise.all(
+      exectionPromiseArray
+    ).then((values) => {
+      values.forEach(function(d, i){
+        re_data.push(d.data);
+      });
+    });
+    // console.log(re_data);
+    
+    return re_data;
+  }
+
 
   async getRiskGraph(ts, te) {
     let token = localStorage.getItem("interset_token");
