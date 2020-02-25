@@ -19,7 +19,7 @@ export default {
   name: "MultiUserReportGenerator",
   data(){
     return {
-      noData: false,
+      noData: false, 
       ts: "",
       te: "",
       userNameList: [],

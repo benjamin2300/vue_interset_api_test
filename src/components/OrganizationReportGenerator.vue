@@ -29,26 +29,158 @@ export default {
   },
   methods: {
     generatePDFOrganRiskStream(doc, data){
+      $('#chart').empty();
+      $('#canvas').empty();
+      
       console.log(data);
       let keys = data.categories;
       data = data.breakdown.map(function(d){
         let risk = d.risk;
         let re_data = {};
         re_data['risk'] = risk;
-        re_data['timestamp'] = new Date(d.timestamp * 1000)
+        re_data['date'] = new Date(d.timestamp * 1000)
         keys.forEach(function(key){
           if(key in d.values){
             // console.log(key);
             // console.log(d.values[key]);
             
-            re_data[key] = risk * d.values[key].contribution / 1000;
+            re_data[key] = risk * d.values[key].contribution / 100;
           }else{
             re_data[key] = 0;
           }
         })
         return re_data
       })
-      console.log(data);
+      data.pop();
+      
+      let margin = {top: 50, right: 100, left: 30, bottom: 30};
+      let chart_width = 1200 - margin.left - margin.right;
+      let chart_height = 400 - margin.top - margin.bottom;
+
+      
+      // console.log(stacked_data);
+      let x_scale = d3.scaleTime()
+          .domain([
+            d3.min(data, function(d){
+              return d.date;
+            }),
+            d3.max(data, function(d){
+              return d.date;
+            })
+          ])
+          .range([0, chart_width]);
+
+      
+      // let y_scale = d3.scaleLinear()
+      //     .domain([0 ,
+      //       d3.max(data, function(d){
+      //         let sum = 0;
+      //         keys.forEach(function(key){
+      //           sum += d[key];
+      //         })
+      //         return sum;
+      //       })
+      //     ])
+      //     .range([chart_height, 0]);
+      let y_scale = d3.scaleLinear()
+          .domain([0 , 100
+          ])
+          .range([chart_height, 0]);
+      
+      
+      let color_scale = d3.scaleOrdinal()
+          .domain(keys)
+          .range(d3.schemeCategory10);
+
+      
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+      
+      // layer 
+      svg.append("g")
+          .attr("class", "stacked-stream-chart");
+      
+      svg.append("g")
+          .attr("class", "x-axis");
+
+      svg.append("g")
+          .attr("class", "y-axis");
+      
+      svg.append("g")
+          .attr("class", "legend");
+
+      // layout
+      let area = d3.area()
+          .x(function(d, i){
+            // console.log(x_scale(d.data.date));
+            
+            return x_scale(d.data.date);
+          })
+          .y0(function(d){
+            return y_scale(d[0]);
+          })
+          .y1(function(d){     
+            if(d[1] >= 100){
+              console.log(y_scale(100));
+              
+              return y_scale(100)
+            }else{
+              console.log(y_scale(d[1]));
+              
+              return y_scale(d[1]);
+            }
+              
+          })
+          .curve(d3.curveMonotoneX);
+      
+      let stacked_data = d3.stack()
+          .keys(keys)(data);
+
+      // chart layer
+      svg.select(".stacked-stream-chart")
+          .selectAll(".stream")
+          .data(stacked_data)
+          .enter()
+          .append("g")
+          .attr("class", "stream")
+          .append("path")
+          .attr("d", function(d){
+            // console.log(d);
+            return area(d);
+          })
+          .attr("fill", function(d, i){
+            return color_scale(i)
+          })
+          .attr("stroke-width", "1px")
+          .attr("stroke", "black");
+
+      let time_format = d3.timeFormat('%m/%d');
+
+      let x_axis = d3.axisBottom(x_scale)
+          .ticks(10)
+          .tickFormat(time_format);
+
+      let y_axis = d3.axisLeft(y_scale)
+          .ticks(10);
+
+      svg.select(".x-axis")
+          .attr("color", "black")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .call(x_axis);
+      svg.select(".y-axis")
+          .attr("color", "black")
+          .call(y_axis);
+      
+      svg.select(".legend")
+
+
+                  
+      
       
     },
     generatePDFOrganRiskPage(doc, data){

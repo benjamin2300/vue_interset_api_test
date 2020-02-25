@@ -531,7 +531,7 @@ export default {
     margin: 10px;
   }
   #chart {
-    width: 800px;
+    width: 1500px;
     height: 800px;
     background-color: #f7f7f7;
     margin: 10px auto;
