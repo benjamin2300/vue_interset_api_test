@@ -161,13 +161,40 @@ export default {
           .attr("y", function(d, i){
             return (20 * i + 5);
           })
-          .attr("text-anchor", "left")
+          .attr("text-anchor", "start")
           .text(function(d){
             return d;
           })
           .attr("font-size", "13px")
-          .attr("dy", "0.5em");
+          .attr("dy", ".75em");
+      // canvas
+
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+
+      doc.addPage();
+      doc.setFontSize(30);
+      doc.text('多名使用者風險值變化', 50, 20);
+      doc.addImage(imgData, 'PNG', 10, 30, 190, 70);
+      doc.setFontSize(30);
     },
+    
     pdfGenerateMultiUserReport(){
       // 1st Page
       let doc = new jsPDF();
@@ -275,6 +302,7 @@ export default {
 
       ]).then((values) => {
         this.generatePDFMultiRiskGraph(doc, values[0], this.userNameList);
+        doc.save("test.pdf")
         // console.log(values[1]);
         
         // this.generatePDFMultiAlertsBreakdown(doc, values[1], this.userNameList);
@@ -286,15 +314,7 @@ export default {
         this.noData = true;
       } else {
         this.noData = false;
-        if(this.formData.formType == "organization"){
-          this.pdfGenerateOrganizationReport();
-        }else if(this.formData.formType == "single-user"){
-          this.pdfGenerateSingleUserReport();
-        }else if(this.formData.formType == "multi-user"){
-          this.pdfGenerateMultiUserReport();
-        }
-
-
+        this.pdfGenerateMultiUserReport();
       }
     },
   }
