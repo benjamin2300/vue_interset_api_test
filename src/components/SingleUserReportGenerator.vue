@@ -337,8 +337,6 @@ export default {
           .attr("fill", function(d, i){
             return bg_color_scale(i % 2);
           })
-          // .attr("stroke", "black")
-          // .attr("stroke-width", "2px")
           .attr("fill-opacity", 0.2);
 
 

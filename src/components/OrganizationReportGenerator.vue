@@ -31,8 +31,6 @@ export default {
     generatePDFOrganRiskStream(doc, data){
       $('#chart').empty();
       $('#canvas').empty();
-      
-      console.log(data);
       let keys = data.categories;
       data = data.breakdown.map(function(d){
         let risk = d.risk;
@@ -53,7 +51,7 @@ export default {
       })
       data.pop();
       
-      let margin = {top: 50, right: 100, left: 30, bottom: 30};
+      let margin = {top: 50, right: 100, left: 30, bottom: 80};
       let chart_width = 1200 - margin.left - margin.right;
       let chart_height = 400 - margin.top - margin.bottom;
 
@@ -112,26 +110,20 @@ export default {
           .attr("class", "y-axis");
       
       svg.append("g")
-          .attr("class", "legend");
+          .attr("class", "legends");
 
       // layout
       let area = d3.area()
           .x(function(d, i){
-            // console.log(x_scale(d.data.date));
-            
             return x_scale(d.data.date);
           })
           .y0(function(d){
             return y_scale(d[0]);
           })
           .y1(function(d){     
-            if(d[1] >= 100){
-              console.log(y_scale(100));
-              
+            if(d[1] >= 100){          
               return y_scale(100)
             }else{
-              console.log(y_scale(d[1]));
-              
               return y_scale(d[1]);
             }
               
@@ -154,7 +146,7 @@ export default {
             return area(d);
           })
           .attr("fill", function(d, i){
-            return color_scale(i)
+            return color_scale(keys[i])
           })
           .attr("stroke-width", "1px")
           .attr("stroke", "black");
@@ -176,11 +168,55 @@ export default {
           .attr("color", "black")
           .call(y_axis);
       
-      svg.select(".legend")
-
-
-                  
+      let legends = svg.select(".legends")
+          .selectAll("legend")
+          .data(keys)
+          .enter()
+          .append("g")
+          .attr("class", "legend")
+          .attr("transform", function(d, i){
+            return "translate(" + (i * 150 + 50) + ", " + (chart_height + margin.bottom /2) + ")";
+          });
       
+      legends.append("rect")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("width", 15)
+          .attr("height", 15)
+          .attr("fill", function(d){
+            return color_scale(d);
+          });
+      legends.append("text")
+          .attr("x", 18)
+          .attr("y", 15)
+          .attr("dy", "-.3em")
+          .text(function(d){
+            return d;
+          })
+          .attr("font-size", "13px")
+          .attr("text-anchor", "start");
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.right + margin.left);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      doc.addPage();
+      doc.setFontSize(24);
+      doc.text("總體風險值變化(含威脅種類分佈)", 60, 20);
+      doc.addImage(imgData, 'PNG', 10, 70, 210, 80 );
       
     },
     generatePDFOrganRiskPage(doc, data){

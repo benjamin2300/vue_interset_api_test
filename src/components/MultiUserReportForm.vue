@@ -68,7 +68,7 @@
           </el-transfer>
         </div>
       </div> 
-      <div class="transfer-div">
+      <!-- <div class="transfer-div">
         <div class="transfer-label"><span>選擇內容</span></div>
         <div class="transfer-body">
           <el-transfer 
@@ -83,7 +83,7 @@
             >
           </el-transfer>
         </div>
-      </div> 
+      </div>  -->
       
       <div class="pdf-generate-button-div">
         <MultiUserReportGenerator :formData="formData" />
@@ -133,7 +133,7 @@ export default {
         season_year:"",
         season_q:"",
         daterange:"",
-        contentList: [],
+        contentList: [1],
         userList: [],
         allUserList: [],
       },
@@ -210,7 +210,7 @@ export default {
   }
   .form-div{
     width: 750px;
-    height: 800px;
+    height: 500px;
     margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;

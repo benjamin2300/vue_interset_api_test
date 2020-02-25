@@ -577,7 +577,160 @@ export default {
       }
 
     },
+    generatePDFMultiWorkingHoursWeekly(doc, allData, userNameList){
+      // console.log(data);
+      doc.addPage();
+      doc.setFontSize(30);
+      doc.text('多名使用者一週內內活躍程度', 45, 15);
 
+      for(let ui=0; ui<allData.length; ui++){
+        let data = allData[ui];
+        // process data
+        let week_data = [];
+        let sum = 0;
+        let counter = 0;
+        // console.log(data);
+        
+        for(let i=0; i<data.length; i++){
+          sum += data[i].expected;
+          counter += 1;
+          if(counter == 48){
+            // console.log(sum);
+            
+            week_data.push(sum);
+            sum = 0;
+            counter = 0;
+          }
+        }
+        let labels = ["星期一", "星期二", "星期三", "星期四","星期五","星期六","星期日",]
+        week_data = week_data.map(function(d, i){
+          return {
+            label: labels[i],
+            value: d
+          };
+        });
+        let bg_data = week_data.map(function(d, i){
+          return {
+            label: labels[i],
+            value: d3.max(week_data, function(d){
+              return d.value;
+            })
+          }
+        })
+        // bar chart
+        $('#chart').empty();
+        $('#canvas').empty();
+        
+        let margin = {top: 40, right: 30, bottom:30, left: 60}
+        let chart_width = 600 - margin.right - margin.left;
+        let chart_height = 300 - margin.top - margin.bottom;
+
+        let svg = d3.select("#chart")
+            .append("svg")
+            .attr("width", chart_width + margin.left + margin.right)
+            .attr("height", chart_height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+        
+        svg.append("g")
+            .attr("class", "bg-bars");
+        svg.append("g")
+            .attr("class", "x-axis");
+        svg.append("g")
+            .attr("class", "y-axis");
+        svg.append("g")
+            .attr("class", "bars");
+        
+        let x_scale = d3.scaleBand()
+            .rangeRound([0, chart_width])
+            .padding(0.05)
+            .domain(labels);
+        let y_scale = d3.scaleLinear()
+            .range([chart_height, 0])
+            .domain([0, d3.max(week_data, function(d){
+              return +d.value;
+            })]);
+        let bars = svg.select(".bars")
+            .selectAll(".bar")
+            .data(week_data)
+            .enter()
+            .append("g")
+            .attr("class", "bar")
+            .append("rect")
+            .attr("x", function(d){
+              return x_scale(d.label);
+            })
+            .attr("y", function(d){
+              return y_scale(d.value);
+            })
+            .attr("width", x_scale.bandwidth())
+            .attr("height", function(d){
+              return chart_height - y_scale(d.value);
+            })
+            .attr("fill", "#97a9c2")
+            .attr("fill-opacity", 0.8);
+        
+        svg.select(".x-axis")
+            .attr("color", "black")
+            .attr("transform", "translate(0, " + chart_height + ")")
+            .call(d3.axisBottom(x_scale))
+            .selectAll("text")
+            .attr("text-anchor", "middle");
+        d3.select("svg").append("text")
+            .text(userNameList[ui])
+            .attr("x", margin.left + chart_width / 2)
+            .attr("y", margin.top)
+            .attr("dy", "-1em")
+            .attr("text-anchor", "middle");
+
+        d3.select(".bg-bars")
+            .selectAll("bg-bar")
+            .data(bg_data)
+            .enter()
+            .append("g")
+            .attr("class", "bg-bar")
+            .append("rect")
+            .attr("x", function(d){
+              return x_scale(d.label);
+            })
+            .attr("y", function(d){
+              return y_scale(d.value);
+            })
+            .attr("width", x_scale.bandwidth())
+            .attr("height", function(d){
+              return chart_height - y_scale(d.value);
+            })
+            .attr("fill", "#cccccc")
+            .attr("fill-opacity", 0.3);
+        // svg.select(".y-axis")
+        //     .attr("color", "black")
+        //     .call(d3.axisLeft(y_scale));
+        let canvas = document.getElementById('canvas');
+        let context = canvas.getContext('2d');
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        d3.select("#canvas")
+            .attr("width", chart_width + margin.left + margin.right)
+            .attr("height", chart_height + margin.right + margin.left);
+
+        let firstSvg = $('#chart');
+        let content = $(firstSvg).html();
+        // console.log(content);
+          
+        context.drawSvg(content);
+        let imgData = canvas.toDataURL('image/png');
+        // console.log(imgData);
+        
+        d3.select("#canvas")
+            .attr("width", 500)
+            .attr("height", 500);
+        // doc.setFontSize(15);
+        // doc.text('風險值', 35, 18);
+        doc.addImage(imgData, 'PNG', 80 * (ui % 2) + 20  
+                                  , 70 * Math.floor(ui / 2) + 20 
+                                  , 90
+                                  , 70 );
+      }
+    },
     
     pdfGenerateMultiUserReport(){
 
@@ -684,7 +837,8 @@ export default {
       Promise.all([
         apiService.getMultiUserRiskGraph(this.userHashList, this.ts, this.te),
         apiService.getMultiUserAlertsBreakdown(this.userHashList, this.ts, this.te),
-        apiService.getMultiUserWorkingHoursDaily(this.userHashList)
+        apiService.getMultiUserWorkingHoursDaily(this.userHashList),
+        apiService.getMultiUserWorkingHoursWeekly(this.userHashList),
 
       ]).then((values) => {
         this.generatePDFMultiRiskGraph(doc, values[0], this.userNameList);
@@ -692,6 +846,7 @@ export default {
         
         this.generatePDFMultiAlertsBreakdown(doc, values[1], this.userNameList);
         this.generatePDFMultiWorkingHoursDaily(doc, values[2], this.userNameList);
+        this.generatePDFMultiWorkingHoursWeekly(doc, values[3], this.userNameList);
         doc.save("test.pdf");
 
       })
