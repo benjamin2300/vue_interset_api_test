@@ -33,7 +33,6 @@ export default {
   methods: {
     generatePDFSingleRisk(doc, data){
       // console.log(data);
-      
       data = d3.max(data, function(d){
         return d.risk
       })
@@ -67,7 +66,6 @@ export default {
         risk_level = "extreme";
         risk_level_text = "極高風險使用者";
       }
-
 
       $('#chart').empty();
       $('#canvas').empty();
@@ -125,10 +123,10 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 20, 5, 50, 50);
+      doc.addImage(imgData, 'PNG', 20, 25, 50, 50);
       doc.setFontSize(30)
-      doc.text(risk_level_text, 80, 25);
-      doc.text( this.userName, 80, 45);
+      doc.text(risk_level_text, 80, 45);
+      doc.text( "ID : " + this.userName, 80, 65);
     },
     generatePDFSingleRiskGraph(doc, data){
       // console.log(new Date(data[0].timestamp));
@@ -139,16 +137,13 @@ export default {
       let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
       
       data = data.map(function(d){ return {date: new Date(d.timestamp * 1000), risk: d.risk};});
-      // console.log(data);
-      // console.log(data);
-      
+    
       // data.pop();
       // data.shift();
-      // console.log(data);
+
       let margin = {top: 70, right: 30, bottom: 30, left: 60};
       let chart_width = 750 - margin.left - margin.right ;
       let chart_height = 350 -margin.top - margin.bottom;
-
 
       let svg = d3.select("#chart")
           .append("svg")
@@ -187,8 +182,6 @@ export default {
             return d.risk >= 0;
           })
           .x(function(d){
-            // console.log(x_scale(d.date));
-            
             return x_scale(d.date);
           })
           .y(function(d){
@@ -280,8 +273,22 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 10, 55, 190, 70 );
+      doc.addImage(imgData, 'PNG', 10, 75, 190, 70 );
 
+    },
+    generatePDFRiskGraphDescription(doc, ts, te, userHash){
+      let month = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+      let new_ts = new Date(this.ts);
+      let new_te = new Date(this.te - 24*60*60*1000);
+
+      let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
+                      + " 到 " + 
+                      new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate();
+      let text = "這頁顯示時間範圍內" + date_range + "的風險值變化，數值為 0~100之間，0~24屬於低風險使用者，25~49屬於中風險使用者，50~74屬於高風險使用者，大於75屬於極高風險使用者，";
+      let text1 = "左上角圈圈代表風險值，圖表表示風險值隨時間變化，x軸代表時間變化，y軸代表風險值."
+      doc.setFontSize(15);
+      let lines = doc.splitTextToSize(text + text1, 210 - 15 -15);
+      doc.text(15, 150, lines);
     },
     generatePDFSingleWorkingHoursDaily(doc, data){
       // data
@@ -848,7 +855,6 @@ export default {
 
       doc.text("使用者 : " + this.userName, 75, 170);
 
-
       doc.setFontSize(10);
       // console.log(this.formData);
 
@@ -890,24 +896,83 @@ export default {
                       + " 到 " + 
                       new_te.getFullYear() + "/" + month[new_te.getMonth()] + "/" + new_te.getDate(); 
       doc.text(date_range, 80, 180);
-      // Data Page
-      // get daterange
-      // let userHash = ""
-      // console.log(this.userName);
+
+      // let selection = this.formData.contentList.slice();
+      // let promiseArray = [
+      //   // maximum risk, and risk graph
+      //   apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
+      //   // workingHoursDaily
+      //   apiService.getUserWorkingHoursDaily(this.userHash),
+      //   // workingHoursWeekly
+      //   apiService.getUserWorkingHoursWeekly(this.userHash),
+      //   // threat statistics
+      //   apiService.getUserAlertsThreatStatistics(this.userHash, this.ts, this.te),
+      //   // table data
+      //   apiService.getUserAlertsBreakdown(this.userHash, this.ts, this.te),
+      //   apiService.getUserTopFailedLogin(this.userHash, this.ts, this.te),
+      //   apiService.getUserTopExitProducers(this.userHash, this.ts, this.te),
+      //   apiService.getUserTopScreenCaptures(this.userHash, this.ts, this.te),
+      //   apiService.getUserTopViolationProducers(this.userHash, this.ts, this.te),
+      //   // risk graph stram
+      
+      // ]
+      
+      // let exectionPromiseArray = [];
+      // let pdf_map = {}
+      // let pdf_counter = 0;
+
+      // selection.forEach(function(d){
+      //   if(d == 0){
+      //     // maximum rosk and risk line chart graph
+      //     exectionPromiseArray.push(promiseArray[0]);
+      //     pdf_map[d] = pdf_counter;
+      //     pdf_counter += 1;
+      //   }else if(d == 1){
+      //     // working hours daily
+      //     exectionPromiseArray.push(promiseArray[1]);
+      //     pdf_map[d] = pdf_counter;
+      //     pdf_counter += 1;
+      //   }else if(d == 2){
+      //     // working hours weekly
+      //     exectionPromiseArray.push(promiseArray[2]);
+      //     pdf_map[d] = pdf_counter;
+      //     pdf_counter += 1;
+      //   }else if(d == 3){
+      //     // threat statistics
+      //     exectionPromiseArray.push(promiseArray[3]);
+      //     pdf_map[d] = pdf_counter;
+      //     pdf_counter += 1;
+      //   }else if(d == 4){
+      //     //working hours daily
+      //     exectionPromiseArray.push(promiseArray[4]);
+      //     exectionPromiseArray.push(promiseArray[5]);
+      //     exectionPromiseArray.push(promiseArray[6]);
+      //     exectionPromiseArray.push(promiseArray[7]);
+      //     exectionPromiseArray.push(promiseArray[8]);
+      //     pdf_map[d] = pdf_counter;
+      //     pdf_counter += 1;
+      //   }
+      //   // else if(d == 5){
+      //   //   exectionPromiseArray.push(promiseArray[9])
+      //   //   pdf_map[d] = pdf_counter;
+      //   //   pdf_counter += 1;
+      //   // }
+      // });
       
       apiService.getUserHash(this.userName).then((value) => {
         // get Hash
 
         this.userHash = value.data.users[0].entityHash;
-        
         // console.log(this.userHash);
-        Promise.all([
-          // apiService.getUserRisk(this.userHash, "current"),
+        let selection = this.formData.contentList.slice();
+        let promiseArray = [
+          // maximum risk, and risk graph
           apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
-          // chart graph
-          apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
+          // workingHoursDaily
           apiService.getUserWorkingHoursDaily(this.userHash),
+          // workingHoursWeekly
           apiService.getUserWorkingHoursWeekly(this.userHash),
+          // threat statistics
           apiService.getUserAlertsThreatStatistics(this.userHash, this.ts, this.te),
           // table data
           apiService.getUserAlertsBreakdown(this.userHash, this.ts, this.te),
@@ -915,34 +980,129 @@ export default {
           apiService.getUserTopExitProducers(this.userHash, this.ts, this.te),
           apiService.getUserTopScreenCaptures(this.userHash, this.ts, this.te),
           apiService.getUserTopViolationProducers(this.userHash, this.ts, this.te),
+          // risk graph stram
+        
+        ]
+        
+        let exectionPromiseArray = [];
+        let pdf_map = {}
+        let pdf_counter = 0;
+
+        selection.forEach(function(d){
+          if(d == 0){
+            // maximum rosk and risk line chart graph
+            exectionPromiseArray.push(promiseArray[0]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 1){
+            // working hours daily
+            exectionPromiseArray.push(promiseArray[1]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 2){
+            // working hours weekly
+            exectionPromiseArray.push(promiseArray[2]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 3){
+            // threat statistics
+            exectionPromiseArray.push(promiseArray[3]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }else if(d == 4){
+            //working hours daily
+            exectionPromiseArray.push(promiseArray[4]);
+            exectionPromiseArray.push(promiseArray[5]);
+            exectionPromiseArray.push(promiseArray[6]);
+            exectionPromiseArray.push(promiseArray[7]);
+            exectionPromiseArray.push(promiseArray[8]);
+            pdf_map[d] = pdf_counter;
+            pdf_counter += 1;
+          }
+          // else if(d == 5){
+          //   exectionPromiseArray.push(promiseArray[9])
+          //   pdf_map[d] = pdf_counter;
+          //   pdf_counter += 1;
+          // }
+        });
+        
+        // console.log(this.userHash);
+        Promise.all(
+          exectionPromiseArray
+        ).then((values) => {
+          let selection_count = selection.length;
+
+          selection = this.removeFromSelection(selection, 5);
+          while(selection.length != 0){
+            // console.log(selection.length);
+            
+            if(selection.includes(0)){
+              // ==============================
+              // maximum risk score and risk line chart
+              // ==============================
+              doc.addPage();
+              let data = values[pdf_map[0]].data;
+              this.generatePDFSingleRisk(doc, data);
+              this.generatePDFSingleRiskGraph(doc, data);
+              this.generatePDFRiskGraphDescription(doc, this.ts, this.te, this.userHash)
+              selection = this.removeFromSelection(selection, 0);
+            } else if(selection.includes(1)){
+              // ==============================
+              // working hours daily
+              // ==============================
+              doc.addPage();
+              let data = values[pdf_map[1]].data;
+              this.generatePDFSingleWorkingHoursDaily(doc, data);
+              selection = this.removeFromSelection(selection, 1);
+            } else if(selection.includes(2)){
+              // ==============================
+              // working hours weekly
+              // ==============================
+              doc.addPage();
+              let data = values[pdf_map[2]].data;
+              this.generatePDFSingleWorkingHoursWeekly(doc, data);
+              selection = this.removeFromSelection(selection, 2);
+            } else if(selection.includes(3)){
+              // ==============================
+              // threat statistics
+              // ==============================
+              doc.addPage();
+              let data = values[pdf_map[3]];
+              this.generatePDFSingleAlertThreatStatisics(doc, data);
+              selection = this.removeFromSelection(selection, 3);
+            } else if(selection.includes(4)){
+              // ==============================
+              // table data
+              // ==============================
+              doc.addPage();
+              let riskBreakdown = values[pdf_map[4]].data;
+              let authLogin = values[pdf_map[4]+1].data;
+              let exitProducers = values[pdf_map[4]+2].data;
+              let screenCaptures = values[pdf_map[4]+3].data;
+              let violationProducers = values[pdf_map[4]+4].data;
+              this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);              selection = this.removeFromSelection(selection, 4);
+            }
+          }
+          // doc.addPage();
+          // // let userRisk = values[0].data.risk;
+          // this.generatePDFSingleRisk(doc, values[0].data);
+          // // risk graph
+          // this.generatePDFSingleRiskGraph(doc, values[1].data)
+          // // working hours daily
+          // this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
+          // // working hours weekly
+          // this.generatePDFSingleWorkingHoursWeekly(doc, values[3].data);
+          // // alert threat type
+          // this.generatePDFSingleAlertThreatStatisics(doc, values[4]);
+          // // table data
+          // let riskBreakdown = values[5].data;
+          // let authLogin = values[6].data;
+          // let exitProducers = values[7].data;
+          // let screenCaptures = values[8].data;
+          // let violationProducers = values[9].data;
           
-        ]).then((values) => {
-          doc.addPage();
-          // doc.setFillColor("#87cefa")
-          // doc.rect(10, 10, 190, 280);
-          // doc.roundedRect(10, 10, 200, 500, 2, 3, "F")
-          // console.log(this.userHash);
-          // get user current risk
-          // set risk icon graph
-          // let userRisk = values[0].data.risk;
-          this.generatePDFSingleRisk(doc, values[0].data);
-          // risk graph
-          this.generatePDFSingleRiskGraph(doc, values[1].data)
-          // working hours daily
-          this.generatePDFSingleWorkingHoursDaily(doc, values[2].data);
-          // working hours weekly
-          this.generatePDFSingleWorkingHoursWeekly(doc, values[3].data);
-          // alert threat type
-          this.generatePDFSingleAlertThreatStatisics(doc, values[4]);
-          // table data
-          let riskBreakdown = values[5].data;
-          let authLogin = values[6].data;
-          let exitProducers = values[7].data;
-          let screenCaptures = values[8].data;
-          let violationProducers = values[9].data;
           
-          
-          this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);
+          // this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);
           doc.save('test.pdf');
           
         });
@@ -957,6 +1117,11 @@ export default {
         this.pdfGenerateSingleUserReport();
       }
     },
+    removeFromSelection(selection, data_type){
+      let d_index = selection.indexOf(data_type);
+      selection.splice(d_index, 1);
+      return selection;
+    }
   }
 }
 </script>

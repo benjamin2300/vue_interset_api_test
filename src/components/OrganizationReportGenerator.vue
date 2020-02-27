@@ -948,7 +948,7 @@ export default {
       this.te = this.te.getTime();
 
       let new_ts = new Date(this.ts);
-      let new_te = new Date(this.te);
+      let new_te = new Date(this.te - 24*60*60*1000);
 
       let date_range = new_ts.getFullYear() + "/" + month[new_ts.getMonth()] + "/" + new_ts.getDate() 
                       + " 到 " + 

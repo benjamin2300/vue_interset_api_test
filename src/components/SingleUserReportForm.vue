@@ -67,6 +67,23 @@
         </el-date-picker>
         </div>
       </el-form-item>
+      <div class="transfer-div">
+        <div class="transfer-label"><span>選擇內容</span></div>
+        <div class="transfer-body">
+          <el-transfer 
+            v-model="formData.contentList" 
+            :data="allContentList"
+            :titles="['可選擇項目', '已選擇的項目']" 
+            :format="{
+              noChecked: '${total}',
+              hasChecked: '${checked}/${total}'
+            }"
+            :left-default-checked="contentLeftCheck"
+            :right-default-checked="contentRightCheck"
+            >
+          </el-transfer>
+        </div>
+      </div> 
     
       <div class="pdf-generate-button-div">
         <SingleUserReportGenerator :formData="formData" />
@@ -93,18 +110,16 @@ export default {
   data(){
     const generateAllContentList = _ => {
       const data = [];
-      const data_type = ["使用者", "控制器", "專案", "資源", "分享資源"];
+      const data_type = ["風險值變化", 
+                         "周工作時數分佈", 
+                         "日工作時數分佈", 
+                         "異常比例分佈", 
+                         "異常數量和其他數據", 
+                         "風險值變化(含威脅種類分佈)"];
       for (let i = 0; i < data_type.length; i++) {
         data.push({
           key: i,
           label: data_type[i]
-        });
-      }
-      const other_data = ["整體風險值", "登入成功/失敗", "日工作時數分布"]
-      for(let i=0; i<other_data.length; i++){
-        data.push({
-          key: 11 + i,
-          label: other_data[i]
         });
       }
       return data;
@@ -118,7 +133,7 @@ export default {
         season_year:"",
         season_q:"",
         daterange:"",
-        contentList:[1],
+        contentList:[],
         user: "",
       },
       body: "",
@@ -137,7 +152,8 @@ export default {
       }],
       allUserList: [],
       allContentList: generateAllContentList(),
-      contentLeftCheck: []
+      contentLeftCheck: [],
+      contentRightCheck: [],
     };
   },
   mounted(){
@@ -146,7 +162,9 @@ export default {
       this.allUserList = value;
       // console.log(this.allUsersList);
     }); 
-    this.contentLeftCheck = [0,1,2,3,4,5,11,12,13];
+    // this.contentLeftCheck = [0, 1, 2, 3, 4, 5];
+    this.contentRightCheck = [0, 1, 2, 3, 4, 5];
+    this.formData.contentList = [0, 1, 2, 3, 4, 5];
   }
 }
 </script>
@@ -167,7 +185,7 @@ export default {
   }
   .form-div{
     width: 700px;
-    height: 300px;
+    height: 550px;
     margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;
