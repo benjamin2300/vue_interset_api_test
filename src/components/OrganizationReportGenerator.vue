@@ -979,7 +979,7 @@ export default {
       let exectionPromiseArray = [];
       let pdf_map = {}
       let pdf_counter = 0;
-
+      selection = se;ection.sort();
       selection.forEach(function(d){
         if(d == 0){
           // user
@@ -1102,12 +1102,18 @@ export default {
             this.generatePDFOrganAuthenicationPage(doc, data);
             selection = this.removeFromSelection(selection, 12);
           } else if(selection.includes(13)){
+            // ==========================
+            // daily and weekly working hours page
+            // ==========================
             let daily_data = values[pdf_map[13]].data;
             let weekly_data = values[pdf_map[13] + 1].data;
             // console.log(data);
             this.generatePDFOrganWorkingHours(doc, daily_data, weekly_data);
             selection = this.removeFromSelection(selection, 13);
           } else if(selection.includes(14)){
+            // ==========================
+            // risk graph stream ver. page
+            // ==========================
             let data = values[pdf_map[14]].data;
             this.generatePDFOrganRiskStream(doc, data);
             selection = this.removeFromSelection(selection, 14);

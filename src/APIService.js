@@ -193,27 +193,53 @@ export class APIService {
     let response = await axios.get(url);
     let scrollId = response.data.scrollId;
     let data = response.data.data;
-    let statistics = {};
-    
+    let threat_statistics = {};
+    let family_statistics = {};
+
     while(data.length != 0){
       // console.log(data);
       data.forEach(function(d, i){
         let threat = d.templates.threat;
-        if(threat in statistics){
-          statistics[threat] += 1;
+        let family = d.templates.family;
+
+        if(threat in threat_statistics){
+          threat_statistics[threat] += 1;
         }else{
-          statistics[threat] = 0
+          threat_statistics[threat] = 0
+        }
+        if(family in family_statistics){
+          family_statistics[family] += 1;
+        }else{
+          family_statistics[family] = 0
         }
       });
-
       response = await axios.get(url + '&scrollId=' + scrollId);
       data = response.data.data;
       scrollId = response.data.scrollId;
     }
+    let re_data = {
+      threat: threat_statistics,
+      family: family_statistics
+    }
     // console.log(statistics);
-    return statistics;
+    return re_data;
   }
 
+  async getUserRiskStream(userHash, ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;    
+
+    let url = `${API_URL}/api/search/0/riskGraph/breakdown?interval=day&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
+    // &q=userid%3A89badf0d752cad46
+    if(userHash){
+      url += "&q=userid%3A" + userHash;
+    }
+    if(ts && te){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    return response.data;
+  }
 
 
   async getMultiUserRiskGraph(userHashList, ts, te){
@@ -348,8 +374,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;    
 
-    
-    let url = `${API_URL}/api/search/0/riskGraph/breakdown?count=30&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
+    let url = `${API_URL}/api/search/0/riskGraph/breakdown?interval=day&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
     
     if(ts && te){
       url = url + '&ts=' + ts + '&te=' + te;

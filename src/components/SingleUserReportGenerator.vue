@@ -288,7 +288,196 @@ export default {
       let text1 = "左上角圈圈代表風險值，圖表表示風險值隨時間變化，x軸代表時間變化，y軸代表風險值."
       doc.setFontSize(15);
       let lines = doc.splitTextToSize(text + text1, 210 - 15 -15);
-      doc.text(15, 150, lines);
+      doc.text(15, 155, lines);
+    },
+    generatePDFSingleRiskStream(doc, data){
+      $('#chart').empty();
+      $('#canvas').empty();
+      let keys = data.categories;
+      data = data.breakdown.map(function(d){
+        let risk = d.risk;
+        let re_data = {};
+        re_data['risk'] = risk;
+        re_data['date'] = new Date(d.timestamp * 1000)
+        keys.forEach(function(key){
+          if(key in d.values){
+            // console.log(key);
+            // console.log(d.values[key]);
+            
+            re_data[key] = risk * d.values[key].contribution / 100;
+          }else{
+            re_data[key] = 0;
+          }
+        })
+        return re_data
+      })
+      data.pop();
+      
+      let margin = {top: 50, right: 100, left: 30, bottom: 80};
+      let chart_width = 1200 - margin.left - margin.right;
+      let chart_height = 400 - margin.top - margin.bottom;
+
+      
+      // console.log(stacked_data);
+      let x_scale = d3.scaleTime()
+          .domain([
+            d3.min(data, function(d){
+              return d.date;
+            }),
+            d3.max(data, function(d){
+              return d.date;
+            })
+          ])
+          .range([0, chart_width]);
+
+      
+      // let y_scale = d3.scaleLinear()
+      //     .domain([0 ,
+      //       d3.max(data, function(d){
+      //         let sum = 0;
+      //         keys.forEach(function(key){
+      //           sum += d[key];
+      //         })
+      //         return sum;
+      //       })
+      //     ])
+      //     .range([chart_height, 0]);
+      let y_scale = d3.scaleLinear()
+          .domain([0 , 100
+          ])
+          .range([chart_height, 0]);
+      
+      
+      let color_scale = d3.scaleOrdinal()
+          .domain(keys)
+          .range(d3.schemeCategory10);
+
+      
+
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+      
+      // layer 
+      svg.append("g")
+          .attr("class", "stacked-stream-chart");
+      
+      svg.append("g")
+          .attr("class", "x-axis");
+
+      svg.append("g")
+          .attr("class", "y-axis");
+      
+      svg.append("g")
+          .attr("class", "legends");
+
+      // layout
+      let area = d3.area()
+          .x(function(d, i){
+            return x_scale(d.data.date);
+          })
+          .y0(function(d){
+            return y_scale(d[0]);
+          })
+          .y1(function(d){     
+            if(d[1] >= 100){          
+              return y_scale(100)
+            }else{
+              return y_scale(d[1]);
+            }
+              
+          })
+          .curve(d3.curveMonotoneX);
+      
+      let stacked_data = d3.stack()
+          .keys(keys)(data);
+
+      // chart layer
+      svg.select(".stacked-stream-chart")
+          .selectAll(".stream")
+          .data(stacked_data)
+          .enter()
+          .append("g")
+          .attr("class", "stream")
+          .append("path")
+          .attr("d", function(d){
+            // console.log(d);
+            return area(d);
+          })
+          .attr("fill", function(d, i){
+            return color_scale(keys[i])
+          })
+          .attr("stroke-width", "1px")
+          .attr("stroke", "black");
+
+      let time_format = d3.timeFormat('%m/%d');
+
+      let x_axis = d3.axisBottom(x_scale)
+          .ticks(10)
+          .tickFormat(time_format);
+
+      let y_axis = d3.axisLeft(y_scale)
+          .ticks(10);
+
+      svg.select(".x-axis")
+          .attr("color", "black")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .call(x_axis);
+      svg.select(".y-axis")
+          .attr("color", "black")
+          .call(y_axis);
+      
+      let legends = svg.select(".legends")
+          .selectAll("legend")
+          .data(keys)
+          .enter()
+          .append("g")
+          .attr("class", "legend")
+          .attr("transform", function(d, i){
+            return "translate(" + (i * 150 + 50) + ", " + (chart_height + margin.bottom /2) + ")";
+          });
+      
+      legends.append("rect")
+          .attr("x", 0)
+          .attr("y", 0)
+          .attr("width", 15)
+          .attr("height", 15)
+          .attr("fill", function(d){
+            return color_scale(d);
+          });
+      legends.append("text")
+          .attr("x", 18)
+          .attr("y", 15)
+          .attr("dy", "-.3em")
+          .text(function(d){
+            return d;
+          })
+          .attr("font-size", "13px")
+          .attr("text-anchor", "start");
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.right + margin.left);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      // console.log(imgData);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      doc.setFontSize(24);
+      doc.text("個人風險值變化(含威脅種類分佈)", 60, 20);
+      doc.addImage(imgData, 'PNG', 10, 70, 210, 80 );
     },
     generatePDFSingleWorkingHoursDaily(doc, data){
       // data
@@ -611,124 +800,124 @@ export default {
           
     },
     generatePDFSingleAlertThreatStatisics(doc, data){
-      $('#chart').empty();
-      $('#canvas').empty();
-
-      let chart_width = 400;
-      let chart_height = 400;
-      let padding = 60;
-
-      // console.log(data);
-      let keys = Object.keys(data);
-      data = keys.map(function(d, i){
-        return {
-          threat: d,
-          num: data[d]
-        };
-      });
-      // console.log(data);
-            
-
-      let radius = chart_height / 2;
-      let svg = d3.select("#chart")
-          .append("svg")
-          .attr("width", chart_width + 2*padding)
-          .attr("height", chart_height + 2*padding)
-          .append("g")
-          .attr("transform", "translate(" + (chart_width / 2 + padding) + ", " + (chart_height / 2 + padding) + ")");
-
-      svg.append("g")
-          .attr("class", "arcs")
-      svg.append("g")
-          .attr("class", "labels")
-      svg.append("g")
-          .attr("class", "legends")
-      // console.log(data);
-      let threat_type = ["Lateral Movement", "Credential Access", "Collection", "Initial Access", "Discovery"]
-      let color_scale = d3.scaleOrdinal()
-          .domain(threat_type)
-          .range(d3.schemeTableau10);
       
-      let pie = d3.pie()
-          .value(function(d){
-            return d.num;
-          });
-      let arc = d3.arc()
-          .innerRadius(0)
-          .outerRadius(radius);
-      
-      svg.select(".arcs")
-          .selectAll(".arc")
-          .data(pie(data))
-          .enter()
-          .append("g")
-          .attr("class", "arc")
-          .append("path")
-          .attr("d", arc)
-          .attr("fill", function(d){
-            // console.log(d);
-            return color_scale(d.data.threat);
-          })
-          .attr("stroke", "black");
+      // $('#chart').empty();
+      // $('#canvas').empty();
 
-      let legend = svg.select(".legends")
-          .attr("transform", "translate(" +  (chart_width / 2 - 60) + ", " +  -(chart_height / 2  + 50) + ")")
-          .selectAll(".legend")
-          .data(threat_type);
+      // let chart_width = 400;
+      // let chart_height = 400;
+      // let padding = 60;
+
+      // console.log(data);
+      // let keys = Object.keys(data);
+      // data = keys.map(function(d, i){
+      //   return {
+      //     threat: d,
+      //     num: data[d]
+      //   };
+      // });
+      // // console.log(data);
+          
+      // let radius = chart_height / 2;
+      // let svg = d3.select("#chart")
+      //     .append("svg")
+      //     .attr("width", chart_width + 2*padding)
+      //     .attr("height", chart_height + 2*padding)
+      //     .append("g")
+      //     .attr("transform", "translate(" + (chart_width / 2 + padding) + ", " + (chart_height / 2 + padding) + ")");
+
+      // svg.append("g")
+      //     .attr("class", "arcs")
+      // svg.append("g")
+      //     .attr("class", "labels")
+      // svg.append("g")
+      //     .attr("class", "legends")
+      // // console.log(data);
+      // let threat_type = ["Lateral Movement", "Credential Access", "Collection", "Initial Access", "Discovery"]
+      // let color_scale = d3.scaleOrdinal()
+      //     .domain(threat_type)
+      //     .range(d3.schemeTableau10);
+      
+      // let pie = d3.pie()
+      //     .value(function(d){
+      //       return d.num;
+      //     });
+      // let arc = d3.arc()
+      //     .innerRadius(0)
+      //     .outerRadius(radius);
+      
+      // svg.select(".arcs")
+      //     .selectAll(".arc")
+      //     .data(pie(data))
+      //     .enter()
+      //     .append("g")
+      //     .attr("class", "arc")
+      //     .append("path")
+      //     .attr("d", arc)
+      //     .attr("fill", function(d){
+      //       // console.log(d);
+      //       return color_scale(d.data.threat);
+      //     })
+      //     .attr("stroke", "black");
+
+      // let legend = svg.select(".legends")
+      //     .attr("transform", "translate(" +  (chart_width / 2 - 60) + ", " +  -(chart_height / 2  + 50) + ")")
+      //     .selectAll(".legend")
+      //     .data(threat_type);
         
-      legend.enter()
-          .append("g")
-          .attr("class", "legend")
-          .append("rect")
-          .attr("x", 0)
-          .attr("width", 15)
-          .attr("height", 15)
-          .attr("y", function(d, i){
-            return (15 + 3) * i; 
-          })
-          .attr("fill", function(d){
-            return color_scale(d);
-          });
+      // legend.enter()
+      //     .append("g")
+      //     .attr("class", "legend")
+      //     .append("rect")
+      //     .attr("x", 0)
+      //     .attr("width", 15)
+      //     .attr("height", 15)
+      //     .attr("y", function(d, i){
+      //       return (15 + 3) * i; 
+      //     })
+      //     .attr("fill", function(d){
+      //       return color_scale(d);
+      //     });
       
-      legend.enter()
-          .append("text")
-          .attr("x", 20)
-          .attr("y", function(d, i){
-            return (15 + 3) * i;
-          })
-          .text(function(d){
-            return d;
-          })
-          .attr("dy", "1em")
-          .attr("font-size", "10px");
+      // legend.enter()
+      //     .append("text")
+      //     .attr("x", 20)
+      //     .attr("y", function(d, i){
+      //       return (15 + 3) * i;
+      //     })
+      //     .text(function(d){
+      //       return d;
+      //     })
+      //     .attr("dy", "1em")
+      //     .attr("font-size", "10px");
       
-      let total_num = d3.sum(data, function(d){
-        return d.num;
-      });
-      svg.select(".labels")
-          .selectAll(".label")
-          .data(pie(data))
-          .enter()
-          .append("g")
-          .attr("class", "label")
-          .append("text")
-          .text(function(d){
-            return (Math.floor(d.data.num / total_num * 100) + "%");
-          })
-          .attr("transform", function(d){
-            return "translate(" + arc.centroid(d) + ")";
-          })
-          .attr("text-anchor", "middle")
-          .attr("dx", ".2em");
+      // let total_num = d3.sum(data, function(d){
+      //   return d.num;
+      // });
+      // svg.select(".labels")
+      //     .selectAll(".label")
+      //     .data(pie(data))
+      //     .enter()
+      //     .append("g")
+      //     .attr("class", "label")
+      //     .append("text")
+      //     .text(function(d){
+      //       return (Math.floor(d.data.num / total_num * 100) + "%");
+      //     })
+      //     .attr("transform", function(d){
+      //       return "translate(" + arc.centroid(d) + ")";
+      //     })
+      //     .attr("text-anchor", "middle")
+      //     .attr("dx", ".2em");
 
       
-      d3.select("svg")
-          .append("text")
-          .attr("x", padding + chart_width / 2)
-          .attr("y", padding / 2)
-          .text("異常種類分佈")
-          .attr("text-anchor", "middle")
-          .attr("font-size", "25px");
+      // d3.select("svg")
+      //     .append("text")
+      //     .attr("x", padding + chart_width / 2)
+      //     .attr("y", padding / 2)
+      //     .text("異常種類分佈")
+      //     .attr("text-anchor", "middle")
+      //     .attr("font-size", "25px");
       
       let canvas = document.getElementById('canvas');
       let context = canvas.getContext('2d');
@@ -751,6 +940,9 @@ export default {
           .attr("height", 500);
       doc.addImage(imgData, 'PNG', 105, 205, 90, 90 );
 
+
+    },
+    generatePDFSingleAlertFamilyStatisics(doc, data){
 
     },
     generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers){
@@ -853,7 +1045,7 @@ export default {
 
       doc.setFontSize(15);
 
-      doc.text("使用者 : " + this.userName, 75, 170);
+      doc.text("ID : " + this.userName, 75, 170);
 
       doc.setFontSize(10);
       // console.log(this.formData);
@@ -968,11 +1160,13 @@ export default {
         let promiseArray = [
           // maximum risk, and risk graph
           apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
+          // maximum riskgraph stram ver.
+          apiService.getUserRiskStream(this.userHash, this.ts, this.te),
           // workingHoursDaily
           apiService.getUserWorkingHoursDaily(this.userHash),
           // workingHoursWeekly
           apiService.getUserWorkingHoursWeekly(this.userHash),
-          // threat statistics
+          // threat statistics, family statistics
           apiService.getUserAlertsThreatStatistics(this.userHash, this.ts, this.te),
           // table data
           apiService.getUserAlertsBreakdown(this.userHash, this.ts, this.te),
@@ -987,7 +1181,9 @@ export default {
         let exectionPromiseArray = [];
         let pdf_map = {}
         let pdf_counter = 0;
-
+        let isstat = false;
+        // console.log(selection);
+        selection = selection.sort();
         selection.forEach(function(d){
           if(d == 0){
             // maximum rosk and risk line chart graph
@@ -995,36 +1191,44 @@ export default {
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 1){
-            // working hours daily
+            // maximum riskgraph stram ver.
             exectionPromiseArray.push(promiseArray[1]);
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 2){
-            // working hours weekly
+            // working hours daily
             exectionPromiseArray.push(promiseArray[2]);
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 3){
-            // threat statistics
+            // working hours weekly
             exectionPromiseArray.push(promiseArray[3]);
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
-          }else if(d == 4){
+          }else if(d == 4 || d == 5){
+            // working hours weekly
+            if(!isstat){
+              exectionPromiseArray.push(promiseArray[4]);
+              pdf_map[d] = pdf_counter;
+              pdf_counter += 1;
+              isstat = true;
+            } else {
+              // pdf_counter -= 1;
+              pdf_map[d] = pdf_counter - 1;
+            }
+          }else if(d == 6){
             //working hours daily
-            exectionPromiseArray.push(promiseArray[4]);
-            exectionPromiseArray.push(promiseArray[5]);
-            exectionPromiseArray.push(promiseArray[6]);
-            exectionPromiseArray.push(promiseArray[7]);
-            exectionPromiseArray.push(promiseArray[8]);
+            let table_idx = 5;
+            exectionPromiseArray.push(promiseArray[table_idx]);
+            exectionPromiseArray.push(promiseArray[table_idx+1]);
+            exectionPromiseArray.push(promiseArray[table_idx+2]);
+            exectionPromiseArray.push(promiseArray[table_idx+3]);
+            exectionPromiseArray.push(promiseArray[table_idx+4]);
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }
-          // else if(d == 5){
-          //   exectionPromiseArray.push(promiseArray[9])
-          //   pdf_map[d] = pdf_counter;
-          //   pdf_counter += 1;
-          // }
         });
+        console.log(pdf_map);
         
         // console.log(this.userHash);
         Promise.all(
@@ -1032,7 +1236,7 @@ export default {
         ).then((values) => {
           let selection_count = selection.length;
 
-          selection = this.removeFromSelection(selection, 5);
+          // selection = this.removeFromSelection(selection, 5);
           while(selection.length != 0){
             // console.log(selection.length);
             
@@ -1046,41 +1250,60 @@ export default {
               this.generatePDFSingleRiskGraph(doc, data);
               this.generatePDFRiskGraphDescription(doc, this.ts, this.te, this.userHash)
               selection = this.removeFromSelection(selection, 0);
-            } else if(selection.includes(1)){
+            }else if(selection.includes(1)){
+              // ==============================
+              // maximum risk score stream ver.
+              // ==============================
+              doc.addPage();
+              let data = values[pdf_map[1]].data;
+              this.generatePDFSingleRiskStream(doc, data);
+              selection = this.removeFromSelection(selection, 1);
+
+            }else if(selection.includes(2)){
               // ==============================
               // working hours daily
               // ==============================
               doc.addPage();
-              let data = values[pdf_map[1]].data;
+              let data = values[pdf_map[2]].data;
               this.generatePDFSingleWorkingHoursDaily(doc, data);
-              selection = this.removeFromSelection(selection, 1);
-            } else if(selection.includes(2)){
+              selection = this.removeFromSelection(selection, 2);
+            } else if(selection.includes(3)){
               // ==============================
               // working hours weekly
               // ==============================
               doc.addPage();
-              let data = values[pdf_map[2]].data;
+              let data = values[pdf_map[3]].data;
               this.generatePDFSingleWorkingHoursWeekly(doc, data);
-              selection = this.removeFromSelection(selection, 2);
-            } else if(selection.includes(3)){
+              selection = this.removeFromSelection(selection, 3);
+            } else if(selection.includes(4)){
               // ==============================
               // threat statistics
               // ==============================
               doc.addPage();
-              let data = values[pdf_map[3]];
+              let data = values[pdf_map[4]];
               this.generatePDFSingleAlertThreatStatisics(doc, data);
-              selection = this.removeFromSelection(selection, 3);
-            } else if(selection.includes(4)){
+              selection = this.removeFromSelection(selection, 4);
+            } else if(selection.includes(5)){
+              // ==============================
+              // family statistics
+              // ==============================
+              doc.addPage();
+              let data = values[pdf_map[5]];
+              this.generatePDFSingleAlertFamilyStatisics(doc, data);
+              selection = this.removeFromSelection(selection, 5);
+            } else if(selection.includes(6)){
               // ==============================
               // table data
               // ==============================
-              doc.addPage();
-              let riskBreakdown = values[pdf_map[4]].data;
-              let authLogin = values[pdf_map[4]+1].data;
-              let exitProducers = values[pdf_map[4]+2].data;
-              let screenCaptures = values[pdf_map[4]+3].data;
-              let violationProducers = values[pdf_map[4]+4].data;
-              this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);              selection = this.removeFromSelection(selection, 4);
+              
+              let riskBreakdown = values[pdf_map[6]].data;
+              let authLogin = values[pdf_map[6]+1].data;
+              let exitProducers = values[pdf_map[6]+2].data;
+              let screenCaptures = values[pdf_map[6]+3].data;
+              let violationProducers = values[pdf_map[6]+4].data;
+              
+              this.generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers);
+              selection = this.removeFromSelection(selection, 6);
             }
           }
           // doc.addPage();

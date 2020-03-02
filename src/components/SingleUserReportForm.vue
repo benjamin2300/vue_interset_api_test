@@ -111,11 +111,13 @@ export default {
     const generateAllContentList = _ => {
       const data = [];
       const data_type = ["風險值變化", 
+                         "風險值變化(含威脅種類分佈)",
                          "周工作時數分佈", 
                          "日工作時數分佈", 
-                         "異常比例分佈", 
-                         "異常數量和其他數據", 
-                         "風險值變化(含威脅種類分佈)"];
+                         "威脅種類分佈",
+                         "異常行為分佈", 
+                         "異常數量和其他數據"
+                         ];
       for (let i = 0; i < data_type.length; i++) {
         data.push({
           key: i,
@@ -163,8 +165,8 @@ export default {
       // console.log(this.allUsersList);
     }); 
     // this.contentLeftCheck = [0, 1, 2, 3, 4, 5];
-    this.contentRightCheck = [0, 1, 2, 3, 4, 5];
-    this.formData.contentList = [0, 1, 2, 3, 4, 5];
+    this.contentRightCheck = [0, 1, 2, 3, 4, 5, 6];
+    this.formData.contentList = [0, 1, 2, 3, 4, 5, 6];
   }
 }
 </script>
