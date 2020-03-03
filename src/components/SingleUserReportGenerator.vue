@@ -800,9 +800,52 @@ export default {
           
     },
     generatePDFSingleAlertThreatStatisics(doc, data){
+
+      $('#chart').empty();
+      $('#canvas').empty();
+
+      let chart_width = 400;
+      let chart_height = 400;
+      let margin = {top:100, left:100, bottom: 100, right:100}
+      // console.log(data);
       
-      // $('#chart').empty();
-      // $('#canvas').empty();
+      data = data.threat;
+      let userName = this.userName;
+      let keys = Object.keys(data);
+      let threat_data = {};
+      data = [data];
+      data = data.map(function(d){
+        return { 
+          name: userName,
+          axes: keys.map(function(key){
+            return {
+              axis: key,
+              value: d[key] 
+            }
+          })
+        }
+      });
+      // console.log(data);
+      
+      let randomNum = Math.floor(Math.random() * 10)
+      
+      let randomColor = d3.schemeCategory10[randomNum];
+      let radarChartOption = {
+        w: chart_width,
+        h: chart_height,
+        margin: margin,
+        maxValue: d3.max(data, function(d){
+          return d.value;
+        }),
+        levels: 5,
+        roundStrokes: true,
+        color: d3.scaleOrdinal().range([randomColor]),
+        format: '.0f',
+        unit: '',
+        legend: { title: '使用者名稱', translateX: 100, translateY: 40 },
+      }
+      RadarChart("#chart", data, radarChartOption);
+
 
       // let chart_width = 400;
       // let chart_height = 400;
@@ -923,8 +966,8 @@ export default {
       let context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
       d3.select("#canvas")
-          .attr("width", chart_width + 2 * padding)
-          .attr("height", chart_height + 2 * padding);
+          .attr("width", chart_width + margin.right + margin.left)
+          .attr("height", chart_height + margin.top + margin.bottom);
 
       let firstSvg = $('#chart');
       let content = $(firstSvg).html();
@@ -943,6 +986,71 @@ export default {
 
     },
     generatePDFSingleAlertFamilyStatisics(doc, data){
+      $('#chart').empty();
+      $('#canvas').empty();
+
+      let chart_width = 400;
+      let chart_height = 400;
+      let margin = {top:100, left:100, bottom: 100, right:100}
+      // console.log(data);
+      
+      data = data.family;
+      let userName = this.userName;
+      let keys = Object.keys(data);
+      let threat_data = {};
+      data = [data];
+      data = data.map(function(d){
+        return { 
+          name: userName,
+          axes: keys.map(function(key){
+            return {
+              axis: key,
+              value: d[key] 
+            }
+          })
+        }
+      });
+      console.log(data);
+      
+      let randomNum = Math.floor(Math.random() * 10)
+      
+      let randomColor = d3.schemeCategory10[randomNum];
+      let radarChartOption = {
+        w: chart_width,
+        h: chart_height,
+        margin: margin,
+        maxValue: d3.max(data, function(d){
+          return d.value;
+        }),
+        levels: 5,
+        roundStrokes: true,
+        color: d3.scaleOrdinal().range([randomColor]),
+        format: '.0f',
+        unit: '',
+        legend: { title: '使用者名稱', translateX: 100, translateY: 40 },
+      }
+      RadarChart("#chart", data, radarChartOption);
+
+      let canvas = document.getElementById('canvas');
+      let context = canvas.getContext('2d');
+      context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.right + margin.left)
+          .attr("height", chart_height + margin.top + margin.bottom);
+
+      let firstSvg = $('#chart');
+      let content = $(firstSvg).html();
+      // console.log(content);
+        
+      context.drawSvg(content);
+      let imgData = canvas.toDataURL('image/png');
+      
+      
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      doc.addImage(imgData, 'PNG', 105, 205, 90, 90 );
 
     },
     generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers){
@@ -1228,7 +1336,6 @@ export default {
             pdf_counter += 1;
           }
         });
-        console.log(pdf_map);
         
         // console.log(this.userHash);
         Promise.all(
