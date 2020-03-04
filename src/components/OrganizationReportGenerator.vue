@@ -979,7 +979,7 @@ export default {
       let exectionPromiseArray = [];
       let pdf_map = {}
       let pdf_counter = 0;
-      selection = se;ection.sort();
+      selection = selection.sort();
       selection.forEach(function(d){
         if(d == 0){
           // user

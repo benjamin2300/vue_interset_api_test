@@ -1,9 +1,16 @@
 <template>
   <div>
-      <p :class="{ pHidden: !noData, pShow: noData }">please select at least one item.</p>
+      <!-- <p :class="{ pHidden: !notOKForm, pShow: notOKForm }">{{ alert_messages }}</p> -->
+      <!-- <p v-show="notOKForm">{{alert_messages}}</p> -->
       <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
        <el-button @click="pdfGenerate" type="primary">產生pdf報表</el-button>
       </el-tooltip>
+      <el-alert
+        v-show="notOKForm"
+        :title="alert_messages"
+        type="error"
+        show-icon>
+      </el-alert>
   </div>
 </template>
 
@@ -18,11 +25,13 @@ export default {
   name: "singleUserReportGenerator",
   data(){
     return {
-      noData: false,
+      status: "",
+      notOKForm: false,
       ts: "",
       te: "",
       userName: "",
       userHash: "",
+      alert_messages: ""
     }
   },
   props: {
@@ -132,6 +141,17 @@ export default {
       // console.log(new Date(data[0].timestamp));
       $('#chart').empty();
       $('#canvas').empty();
+      let log_data = data.map(function(d){
+        return {
+          risk: d.risk,
+          timestamp: new Date(d.timestamp*1000)
+        }
+      })
+      console.log(log_data);
+      
+      console.log(data);
+      
+      
       
       let time_format = d3.timeFormat('%m/%d');
       let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
@@ -170,7 +190,7 @@ export default {
           ])
           .range([chart_height, 0]);
       let x_axis = d3.axisBottom(x_scale)
-          .ticks(6)
+          .ticks(10)
           .tickFormat(time_format);
       
       let y_axis = d3.axisLeft(y_scale)
@@ -293,10 +313,18 @@ export default {
     generatePDFSingleRiskStream(doc, data){
       $('#chart').empty();
       $('#canvas').empty();
+      console.log(data);
+      let pre_risk = 0
       let keys = data.categories;
       data = data.breakdown.map(function(d){
-        let risk = d.risk;
+        let risk = 0;
         let re_data = {};
+        if(!d.risk){
+          risk = pre_risk
+        }else {
+          risk = d.risk;
+          pre_risk = risk;
+        }
         re_data['risk'] = risk;
         re_data['date'] = new Date(d.timestamp * 1000)
         keys.forEach(function(key){
@@ -477,7 +505,7 @@ export default {
           .attr("height", 500);
       doc.setFontSize(24);
       doc.text("個人風險值變化(含威脅種類分佈)", 60, 20);
-      doc.addImage(imgData, 'PNG', 10, 70, 210, 80 );
+      doc.addImage(imgData, 'PNG', 10, 40, 210, 80 );
     },
     generatePDFSingleWorkingHoursDaily(doc, data){
       // data
@@ -617,16 +645,16 @@ export default {
             }
           });
 
-      d3.select("svg")
-          .append("g")
-          .attr("class", "title-text")
-          .append("text")
-          .text("24小時內工作活躍程度")
-          .attr("x", chart_width / 2)
-          .attr("text-anchor", "middle")
-          .attr("y", padding / 2)
-          .attr("dy", "-.1em")
-          .attr("font-size", "20px");
+      // d3.select("svg")
+      //     .append("g")
+      //     .attr("class", "title-text")
+      //     .append("text")
+      //     .text("24小時內工作活躍程度")
+      //     .attr("x", chart_width / 2)
+      //     .attr("text-anchor", "middle")
+      //     .attr("y", padding / 2)
+      //     .attr("dy", "-.1em")
+      //     .attr("font-size", "20px");
 
       let canvas = document.getElementById('canvas');
       let context = canvas.getContext('2d');
@@ -646,9 +674,9 @@ export default {
       d3.select("#canvas")
           .attr("width", 500)
           .attr("height", 500);
-      // doc.setFontSize(15);
-      // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 105, 125, 80, 80 );
+      doc.setFontSize(30);
+      doc.text('24小時內工作程度分佈', 45, 15);
+      doc.addImage(imgData, 'PNG', 45, 30, 120, 120 );
 
     },
     generatePDFSingleWorkingHoursWeekly(doc, data){
@@ -747,12 +775,12 @@ export default {
           .call(d3.axisBottom(x_scale))
           .selectAll("text")
           .attr("text-anchor", "middle");
-      d3.select("svg").append("text")
-          .text("一週工作活躍程度")
-          .attr("x", margin.left + chart_width / 2)
-          .attr("y", margin.top)
-          .attr("dy", "-1em")
-          .attr("text-anchor", "middle");
+      // d3.select("svg").append("text")
+      //     .text("一週工作活躍程度")
+      //     .attr("x", margin.left + chart_width / 2)
+      //     .attr("y", margin.top)
+      //     .attr("dy", "-1em")
+      //     .attr("text-anchor", "middle");
 
       d3.select(".bg-bars")
           .selectAll("bg-bar")
@@ -794,9 +822,9 @@ export default {
       d3.select("#canvas")
           .attr("width", 500)
           .attr("height", 500);
-      // doc.setFontSize(15);
-      // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 10, 125, 95, 70 );
+      doc.setFontSize(30);
+      doc.text('一週平均工作程度分佈', 45, 15);
+      doc.addImage(imgData, 'PNG', 15, 30, 180, 100 );
           
     },
     generatePDFSingleAlertThreatStatisics(doc, data){
@@ -1010,7 +1038,6 @@ export default {
           })
         }
       });
-      console.log(data);
       
       let randomNum = Math.floor(Math.random() * 10)
       
@@ -1402,7 +1429,7 @@ export default {
               // ==============================
               // table data
               // ==============================
-              
+              doc.addPage();
               let riskBreakdown = values[pdf_map[6]].data;
               let authLogin = values[pdf_map[6]+1].data;
               let exitProducers = values[pdf_map[6]+2].data;
@@ -1438,14 +1465,37 @@ export default {
         });
       });
     },
-    pdfGenerate(){
-
-      if(this.formData.contentList.length == 0){
-        this.noData = true;
+    pdfGenerate(){      
+      this.notOKForm = true;
+      if(!this.formData.user){
+        this.alert_messages = "請至少選擇一位使用者";
+      }else if(this.formData.contentList.length == 0){
+        this.alert_messages = "請加入至少一項內容";
+      } else if(this.formData.timeType == "year" && !this.formData.year){
+        this.status = "year no year";
+        this.alert_messages = "請選擇年";
+        // this.pdfGenerateSingleUserReport();
+      } else if(this.formData.timeType == "season"){
+        if(!this.formData.season_year){
+          this.status = "season no year";
+          this.alert_messages = "請選擇季度的年";
+        }else if(!this.formData.season_q){
+          this.status = "season no season";
+          this.alert_messages = "請選擇季度的季";
+        }
+      } else if(this.formData.timeType == "month" && !this.formData.month){
+        this.status = "month no month";
+        this.alert_messages = "請選擇月份";
+      } else if(this.formData.timeType == "custom" && !this.formData.daterange){
+        this.status = "custom no daterange";
+        this.alert_messages = "請選擇時間範圍";
       } else {
-        this.noData = false;
+        this.notOKForm = false;
         this.pdfGenerateSingleUserReport();
       }
+      
+      
+
     },
     removeFromSelection(selection, data_type){
       let d_index = selection.indexOf(data_type);
@@ -1459,13 +1509,20 @@ export default {
 <style>
 p {
   color: red;
-  font-size: 10px;
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .pShow {
   visibility: visible;
+  font-size: 12px;
 }
 .pHidden {
   visibility: hidden;
+  font-size: 12px;
+}
+.el-alert__title {
+  font-size: 16px;
+  font-weight: 700;
 }
 </style>

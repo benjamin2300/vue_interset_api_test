@@ -201,4 +201,7 @@ export default {
   .user-select {
     margin-left: 50px;
   }
+  .pdf-generate-button-div {
+    padding-top: 10px;
+  }
 </style>
