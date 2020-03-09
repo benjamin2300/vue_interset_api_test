@@ -64,22 +64,16 @@ export class APIService {
   async getUserRiskGraph(userHash, ts, te){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    let url = `${API_URL}/api/search/0/riskGraph?count=100&tz=UTC%2B8`
-    // let url = `${API_URL}/api/search/0/users/`
-    // if(userHash){
-    //   url += userHash + '/riskGraph?count=100&tz=UTC%2B8';
-    // }
-    // if(ts && te){
-    //   url = url + '&ts=' + ts + '&te=' + te;
-    // }
+    // let url = `${API_URL}/api/search/0/riskGraph?count=100&tz=UTC%2B8`
+    let url = `${API_URL}/api/search/0/users/`
     if(userHash){
-      url += "&q=userid%3A" + userHash;
+      url += userHash + '/riskGraph?count=100&tz=UTC%2B8';
     }
     if(ts && te){
       url = url + '&ts=' + ts + '&te=' + te;
     }
     const response = await axios.get(url);
-    console.log(url);
+    
     return response.data;
   }
 
@@ -190,7 +184,7 @@ export class APIService {
   async getUserAlertsThreatStatistics(userHash, ts, te){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    let url = `${API_URL}/api/search/0/alerts?count=300&q=userid%3A`;
+    let url = `${API_URL}/api/search/0/alerts?count=1000&q=userid%3A`;
     if(userHash){
       url += userHash;
     }
@@ -230,24 +224,31 @@ export class APIService {
       threat: threat_statistics,
       family: family_statistics
     }
-    // console.log(statistics);
     return re_data;
   }
 
   async getUserRiskStream(userHash, ts, te){
+    // get token
     let token = localStorage.getItem("interset_token");
-    axios.defaults.headers.common['Authorization'] = token;    
-
-    let url = `${API_URL}/api/search/0/riskGraph/breakdown?count=100&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
-    // &q=userid%3A89badf0d752cad46
+    axios.defaults.headers.common['Authorization'] = token;  
+    let url = "";
+    let risk_data = [];
+       
+    url = `${API_URL}/api/search/0/riskGraph/breakdown?count=100&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
+    
     if(userHash){
       url += "&q=userid%3A" + userHash;
     }
     if(ts && te){
       url = url + '&ts=' + ts + '&te=' + te;
     }
+    console.log(url);
+
     const response = await axios.get(url);
-    return response.data;
+    let data = response.data.data;
+
+    return data;
+
   }
 
 
@@ -383,7 +384,7 @@ export class APIService {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;    
 
-    let url = `${API_URL}/api/search/0/riskGraph/breakdown?interval=day&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
+    let url = `${API_URL}/api/search/0/riskGraph/breakdown?count=100&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
     
     if(ts && te){
       url = url + '&ts=' + ts + '&te=' + te;

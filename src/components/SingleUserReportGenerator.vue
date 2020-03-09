@@ -139,31 +139,22 @@ export default {
     },
     generatePDFSingleRiskGraph(doc, data){
       // console.log(new Date(data[0].timestamp));
+      
       $('#chart').empty();
       $('#canvas').empty();
-      let log_data = data.map(function(d){
-        return {
-          risk: d.risk,
-          timestamp: new Date(d.timestamp*1000)
-        }
-      })
-      console.log(log_data);
       
-      console.log(data);
-      
-      
-      
-      let time_format = d3.timeFormat('%m/%d');
+      let time_format = d3.timeFormat('%m-%d');
+      let time_formatY = d3.timeFormat("%Y-%m-%d")
       let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
       
       data = data.map(function(d){ return {date: new Date(d.timestamp * 1000), risk: d.risk};});
-    
-      // data.pop();
-      // data.shift();
+  
+      data.pop();
+      data.shift();
 
-      let margin = {top: 70, right: 30, bottom: 30, left: 60};
+      let margin = {top: 70, right: 50, bottom: 100, left: 60};
       let chart_width = 750 - margin.left - margin.right ;
-      let chart_height = 350 -margin.top - margin.bottom;
+      let chart_height = 500 -margin.top - margin.bottom;
 
       let svg = d3.select("#chart")
           .append("svg")
@@ -171,6 +162,21 @@ export default {
           .attr("height", chart_height + margin.top + margin.bottom)
           .append("g")
           .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+      svg.append("g")
+          .attr("class", "x-grid");
+      svg.append("g")
+          .attr("class", "y-grid");
+
+      svg.append("g")
+          .attr("class", "x-axis");
+      svg.append("g")
+          .attr("class", "y-axis");
+      
+      svg.append("g")
+          .attr("class", "line-chart")
+
+
       // scale
       let x_scale = d3.scaleTime()
           // .domain(d3.extent(data, function(d) { return d.date; }))
@@ -191,23 +197,33 @@ export default {
           .range([chart_height, 0]);
       let x_axis = d3.axisBottom(x_scale)
           .ticks(10)
-          .tickFormat(time_format);
+          .tickFormat(function(d){
+            if(d.getMonth() == 0 && d.getDate() == 1){
+              return time_formatY(d);
+            }else{
+              return time_format(d);
+            }
+              
+          })
+        
+      
+      
       
       let y_axis = d3.axisLeft(y_scale)
           .ticks(10);
       
       // Create Line
-      let line = d3.line()
-          .defined(function(d){
-            return d.risk >= 0;
-          })
-          .x(function(d){
-            return x_scale(d.date);
-          })
-          .y(function(d){
-            return y_scale(d.risk);
-          })
-          .curve(d3.curveMonotoneX);
+      // let line = d3.line()
+      //     .defined(function(d){
+      //       return d.risk >= 0;
+      //     })
+      //     .x(function(d){
+      //       return x_scale(d.date);
+      //     })
+      //     .y(function(d){
+      //       return y_scale(d.risk);
+      //     })
+      //     .curve(d3.curveMonotoneX);
       // Create area
       let area = d3.area()
           .x(function(d){
@@ -219,29 +235,62 @@ export default {
           })
           .curve(d3.curveMonotoneX);
       
-      svg.append("path")
+      svg.select(".line-chart")
+        .append("path")
         .datum(data)
         .attr("class", "area")
         .attr("d", area)
         .attr("fill", "#00c973")
-        .attr("fill-opacity", 0.5);
+        .attr("fill-opacity", 0.2)
+        .attr("stroke", "#00a15c")
+        .attr("stroke-opacity", 0.5)
+        .attr("stroke-width", "2px");
 
-      svg.append( 'path' )
-        .datum( data )
-        .attr( 'fill', 'none')
-        .attr( 'stroke', '#00a15c')
-        .attr( 'stroke-opacity', 0.5 )
-        .attr( 'stroke-width', "2px")
-        .attr( 'd', line );
-
-      svg.append("g")
-          .style('color', 'black')
+      // svg.append( 'path' )
+      //   .datum( data )
+      //   .attr( 'fill', 'none')
+      //   .attr( 'stroke', '#00a15c')
+      //   .attr( 'stroke-opacity', 0.5 )
+      //   .attr( 'stroke-width', "2px")
+      //   .attr( 'd', line );
+      // x-axis
+      svg.select(".x-axis")
           .attr("transform", "translate(0, " + chart_height + ")")
+          .attr("color", "black")
           .call(x_axis);
+      svg.select(".x-axis").selectAll("text")	
+          .attr("text-anchor", "end")
+          .attr("dx", "-.8em")
+          .attr("dy", ".15em")
+          .attr("transform", "rotate(-65)");;
       
-      svg.append("g")
-          .style('color', 'black')
+      // y-axis
+      svg.select(".y-axis")
+          .attr("color", "black")
           .call(y_axis);
+      // x-axis grid line
+      svg.select(".x-grid")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(x_axis
+                  .tickSize(-chart_height)
+                  // .tickValues([])
+                  .tickFormat("")
+                );
+      // y-axis grid line
+      svg.select(".y-grid")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(y_axis
+                  .tickValues([20, 40, 60, 80, 100])
+                  .tickSize(-chart_width)
+                  .tickFormat("")
+                );
+
+
 
       svg.append("text")
         .attr("transform", "rotate(-90)")
@@ -260,7 +309,7 @@ export default {
         .attr("y", margin.bottom / 2)
         .attr("dy", ".5em")
         .attr("dx", "1em")
-        .attr("text-anchor", "middle")
+        .attr("text-anchor", "start")
         .attr("font-size", "12px")
         .text("日期");
       
@@ -293,7 +342,7 @@ export default {
           .attr("height", 500);
       // doc.setFontSize(15);
       // doc.text('風險值', 35, 18);
-      doc.addImage(imgData, 'PNG', 10, 75, 190, 70 );
+      doc.addImage(imgData, 'PNG', 10, 75, 190, 100 );
 
     },
     generatePDFRiskGraphDescription(doc, ts, te, userHash){
@@ -308,30 +357,28 @@ export default {
       let text1 = "左上角圈圈代表風險值，圖表表示風險值隨時間變化，x軸代表時間變化，y軸代表風險值."
       doc.setFontSize(15);
       let lines = doc.splitTextToSize(text + text1, 210 - 15 -15);
-      doc.text(15, 155, lines);
+      doc.text(15, 175, lines);
     },
     generatePDFSingleRiskStream(doc, data){
       $('#chart').empty();
       $('#canvas').empty();
       console.log(data);
-      let pre_risk = 0
-      let keys = data.categories;
-      data = data.breakdown.map(function(d){
-        let risk = 0;
+      // let pre_risk = 0
+      let keys = data.contribution.categories;
+      data = data.contribution.breakdown.map(function(d, i){
+        // let risk = 0;
         let re_data = {};
-        if(!d.risk){
-          risk = pre_risk
-        }else {
-          risk = d.risk;
-          pre_risk = risk;
-        }
+        // if(!d.risk){
+        //   risk = pre_risk
+        // }else {
+        //   risk = d.risk;
+        //   pre_risk = risk;
+        // }
+        let risk = data.risk_data[i].risk;
         re_data['risk'] = risk;
         re_data['date'] = new Date(d.timestamp * 1000)
         keys.forEach(function(key){
           if(key in d.values){
-            // console.log(key);
-            // console.log(d.values[key]);
-            
             re_data[key] = risk * d.values[key].contribution / 100;
           }else{
             re_data[key] = 0;
@@ -675,8 +722,8 @@ export default {
           .attr("width", 500)
           .attr("height", 500);
       doc.setFontSize(30);
-      doc.text('24小時內工作程度分佈', 45, 15);
-      doc.addImage(imgData, 'PNG', 45, 30, 120, 120 );
+      doc.text('24小時內工作程度分佈', 45, 30);
+      doc.addImage(imgData, 'PNG', 45, 40, 120, 120 );
 
     },
     generatePDFSingleWorkingHoursWeekly(doc, data){
@@ -823,12 +870,13 @@ export default {
           .attr("width", 500)
           .attr("height", 500);
       doc.setFontSize(30);
-      doc.text('一週平均工作程度分佈', 45, 15);
-      doc.addImage(imgData, 'PNG', 15, 30, 180, 100 );
+      doc.text('一週平均工作程度分佈', 45, 30);
+      doc.addImage(imgData, 'PNG', 20, 40, 180, 100 );
           
     },
     generatePDFSingleAlertThreatStatisics(doc, data){
-
+      // console.log(data);
+      
       $('#chart').empty();
       $('#canvas').empty();
 
@@ -1004,14 +1052,12 @@ export default {
       context.drawSvg(content);
       let imgData = canvas.toDataURL('image/png');
       
-      
-      
       d3.select("#canvas")
           .attr("width", 500)
           .attr("height", 500);
-      doc.addImage(imgData, 'PNG', 105, 205, 90, 90 );
-
-
+      doc.setFontSize(30);
+      doc.text('威脅種類分佈', 65, 30);
+      doc.addImage(imgData, 'PNG', 40, 40, 150, 150 );
     },
     generatePDFSingleAlertFamilyStatisics(doc, data){
       $('#chart').empty();
@@ -1077,19 +1123,27 @@ export default {
       d3.select("#canvas")
           .attr("width", 500)
           .attr("height", 500);
-      doc.addImage(imgData, 'PNG', 105, 205, 90, 90 );
+      doc.setFontSize(30);
+      doc.text('異常行為分佈', 65, 30);
+      doc.addImage(imgData, 'PNG', 45, 40, 120, 120 );
 
     },
     generatePDFSingleTableInfo(doc, riskBreakdown, authLogin, exitProducers, screenCaptures, violationProducers){
       $('#my-table').empty();
       let jspdfTable = [];
-      
+
       jspdfTable.push(["極高風險異常數量", riskBreakdown.extreme]);
       jspdfTable.push(["高風險異常數量", riskBreakdown.high]);
       jspdfTable.push(["中風險異常數量", riskBreakdown.medium]);
       jspdfTable.push(["低風險異常數量", riskBreakdown.low]);
-      jspdfTable.push(["登入失敗次數", authLogin[0].totalFailed]);
-      jspdfTable.push(["登入成功次數", authLogin[0].totalSuccess]);
+      if(!authLogin.length){
+        jspdfTable.push(["登入失敗次數", 0]);
+        jspdfTable.push(["登入成功次數", 0]);
+      }else{
+        jspdfTable.push(["登入失敗次數", authLogin[0].totalFailed]);
+        jspdfTable.push(["登入成功次數", authLogin[0].totalSuccess]);
+      }
+      
       // console.log(exitProducers.length);
       if(!exitProducers.length){
         // console.log("test");
@@ -1114,14 +1168,16 @@ export default {
         let num = Object.keys(violationProducers)[0];
         jspdfTable.push(["違規觸發次數", num]);
       }
+      doc.setFontSize(30);
+      doc.text('異常數量和其他數據', 60, 30);
 
       doc.autoTable({html: '#my-table'});
       doc.autoTable({
-        startY: 210,
-        margin:{
-          left: 20,
-        },
-        tableWidth: 80,
+        startY: 40,
+        // margin:{
+        //   left: 20,
+        // },
+        // tableWidth: 80,
         theme: 'striped',
         body: jspdfTable,
         styles: {
@@ -1133,14 +1189,14 @@ export default {
           lineWidth: .5,
           lineColor: "#878787",
         },
-        columnStyles: {
-          0: {
-            cellWidth: 60,
-          },
-          1: {
-            cellWidth: 20,
-          }
-        }
+        // columnStyles: {
+        //   0: {
+        //     cellWidth: 60,
+        //   },
+        //   1: {
+        //     cellWidth: 20,
+        //   }
+        // }
       })
     },
     pdfGenerateSingleUserReport(){
@@ -1292,23 +1348,26 @@ export default {
         this.userHash = value.data.users[0].entityHash;
         // console.log(this.userHash);
         let selection = this.formData.contentList.slice();
+        // console.log(selection);
+        
         let promiseArray = [
           // maximum risk, and risk graph
-          apiService.getUserRiskGraph(this.userHash, this.ts, this.te),
+          apiService.getUserRiskGraph,
           // maximum riskgraph stram ver.
-          apiService.getUserRiskStream(this.userHash, this.ts, this.te),
+          apiService.getUserRiskStream,
           // workingHoursDaily
-          apiService.getUserWorkingHoursDaily(this.userHash),
+          apiService.getUserWorkingHoursDaily,
           // workingHoursWeekly
-          apiService.getUserWorkingHoursWeekly(this.userHash),
+          apiService.getUserWorkingHoursWeekly,
           // threat statistics, family statistics
-          apiService.getUserAlertsThreatStatistics(this.userHash, this.ts, this.te),
+          apiService.getUserAlertsThreatStatistics,
+          // this.test(),
           // table data
-          apiService.getUserAlertsBreakdown(this.userHash, this.ts, this.te),
-          apiService.getUserTopFailedLogin(this.userHash, this.ts, this.te),
-          apiService.getUserTopExitProducers(this.userHash, this.ts, this.te),
-          apiService.getUserTopScreenCaptures(this.userHash, this.ts, this.te),
-          apiService.getUserTopViolationProducers(this.userHash, this.ts, this.te),
+          apiService.getUserAlertsBreakdown,
+          apiService.getUserTopFailedLogin,
+          apiService.getUserTopExitProducers,
+          apiService.getUserTopScreenCaptures,
+          apiService.getUserTopViolationProducers,
           // risk graph stram
         
         ]
@@ -1319,31 +1378,37 @@ export default {
         let isstat = false;
         // console.log(selection);
         selection = selection.sort();
+        let fHash = this.userHash;
+        let fts = this.ts;
+        let fte = this.te;
         selection.forEach(function(d){
           if(d == 0){
             // maximum rosk and risk line chart graph
-            exectionPromiseArray.push(promiseArray[0]);
+            
+            exectionPromiseArray.push(promiseArray[0](fHash, fts, fte));
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 1){
             // maximum riskgraph stram ver.
-            exectionPromiseArray.push(promiseArray[1]);
+            // console.log("test");
+            
+            exectionPromiseArray.push(promiseArray[1](fHash, fts, fte));
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 2){
             // working hours daily
-            exectionPromiseArray.push(promiseArray[2]);
+            exectionPromiseArray.push(promiseArray[2](fHash));
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 3){
             // working hours weekly
-            exectionPromiseArray.push(promiseArray[3]);
+            exectionPromiseArray.push(promiseArray[3](fHash));
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }else if(d == 4 || d == 5){
-            // working hours weekly
+            // threat and family
             if(!isstat){
-              exectionPromiseArray.push(promiseArray[4]);
+              exectionPromiseArray.push(promiseArray[4](fHash, fts, fte));
               pdf_map[d] = pdf_counter;
               pdf_counter += 1;
               isstat = true;
@@ -1354,16 +1419,16 @@ export default {
           }else if(d == 6){
             //working hours daily
             let table_idx = 5;
-            exectionPromiseArray.push(promiseArray[table_idx]);
-            exectionPromiseArray.push(promiseArray[table_idx+1]);
-            exectionPromiseArray.push(promiseArray[table_idx+2]);
-            exectionPromiseArray.push(promiseArray[table_idx+3]);
-            exectionPromiseArray.push(promiseArray[table_idx+4]);
+            exectionPromiseArray.push(promiseArray[table_idx](fHash, fts, fte));
+            exectionPromiseArray.push(promiseArray[table_idx+1](fHash, fts, fte));
+            exectionPromiseArray.push(promiseArray[table_idx+2](fHash, fts, fte));
+            exectionPromiseArray.push(promiseArray[table_idx+3](fHash, fts, fte));
+            exectionPromiseArray.push(promiseArray[table_idx+4](fHash, fts, fte));
             pdf_map[d] = pdf_counter;
             pdf_counter += 1;
           }
         });
-        
+
         // console.log(this.userHash);
         Promise.all(
           exectionPromiseArray
@@ -1389,7 +1454,7 @@ export default {
               // maximum risk score stream ver.
               // ==============================
               doc.addPage();
-              let data = values[pdf_map[1]].data;
+              let data = values[pdf_map[1]];
               this.generatePDFSingleRiskStream(doc, data);
               selection = this.removeFromSelection(selection, 1);
 
@@ -1468,6 +1533,7 @@ export default {
     pdfGenerate(){      
       this.notOKForm = true;
       if(!this.formData.user){
+        
         this.alert_messages = "請至少選擇一位使用者";
       }else if(this.formData.contentList.length == 0){
         this.alert_messages = "請加入至少一項內容";
@@ -1482,6 +1548,9 @@ export default {
         }else if(!this.formData.season_q){
           this.status = "season no season";
           this.alert_messages = "請選擇季度的季";
+        }else {
+          this.notOKForm = false;
+          this.pdfGenerateSingleUserReport();
         }
       } else if(this.formData.timeType == "month" && !this.formData.month){
         this.status = "month no month";
@@ -1492,10 +1561,12 @@ export default {
       } else {
         this.notOKForm = false;
         this.pdfGenerateSingleUserReport();
-      }
-      
-      
+      }     
 
+    },
+    test(){
+      console.log("test");
+      
     },
     removeFromSelection(selection, data_type){
       let d_index = selection.indexOf(data_type);

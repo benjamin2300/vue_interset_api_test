@@ -121,7 +121,8 @@ export default {
       for (let i = 0; i < data_type.length; i++) {
         data.push({
           key: i,
-          label: data_type[i]
+          label: data_type[i],
+          disabled: i == 1
         });
       }
       return data;
@@ -165,8 +166,9 @@ export default {
       // console.log(this.allUsersList);
     }); 
     // this.contentLeftCheck = [0, 1, 2, 3, 4, 5];
-    this.contentRightCheck = [0, 1, 2, 3, 4, 5, 6];
-    this.formData.contentList = [0, 1, 2, 3, 4, 5, 6];
+    this.contentRightCheck = [];
+    this.contentLeftCheck= []
+    this.formData.contentList = [0 , 2, 3, 4, 5, 6];
   }
 }
 </script>
