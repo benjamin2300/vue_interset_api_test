@@ -15,12 +15,16 @@
         v-model="formData.year"
         type="year"
         placeholder="選擇年"
+        :picker-options="endDateOpt"
+        :default-value="default_value"
         v-show='formData.timeType === "year"'>
         </el-date-picker>
         <el-date-picker
         v-model="formData.month"
         type="month"
         placeholder="選擇月"
+        :picker-options="endDateOpt"
+        :default-value="default_value"
         v-show='formData.timeType === "month"'>
         </el-date-picker>
         <el-date-picker
@@ -28,9 +32,14 @@
         v-model="formData.season_year"
         type="year"
         placeholder="選擇年"
+        :picker-options="endDateOpt"
+        :default-value="default_value"
         v-show='formData.timeType === "season"'>
         </el-date-picker>
-        <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="請選擇季度" class="season-q-select">
+        <el-select v-show='formData.timeType === "season"' 
+                   v-model="formData.season_q" 
+                   placeholder="請選擇季度" 
+                   class="season-q-select">
           <el-option
             v-for="item in options"
             :key="item.value"
@@ -46,6 +55,8 @@
           range-separator="至"
           start-placeholder="開始日期"
           end-placeholder="結束日期"
+          :picker-options="endDateOpt"
+          :default-value="default_value"
           unlink-panels
           >
         </el-date-picker>
@@ -56,8 +67,8 @@
         <div class="transfer-label"><span>選擇內容</span></div>
         <div class="transfer-body">
           <el-transfer 
-            v-model="formData.contentList" 
             :data="allContentList"
+            v-model="formData.contentList" 
             :titles="['可選擇項目', '已選擇的項目']" 
             :format="{
               noChecked: '${total}',
@@ -81,31 +92,15 @@
 
 <script>
 import OrganizationReportGenerator from '@/components/OrganizationReportGenerator'
+import {APIService} from '@/APIService.js';
 
+const apiService = new APIService();
 export default {
   name: 'organizationReportForm',
   components: {
     OrganizationReportGenerator
   },
   data(){
-    const generateAllContentList = _ => {
-      const data = [];
-      const data_type = ["使用者", "控制器", "專案", "資源", "分享資源"];
-      for (let i = 0; i < data_type.length; i++) {
-        data.push({
-          key: i,
-          label: data_type[i]
-        });
-      }
-      const other_data = ["整體風險值", "登入成功/失敗", "日/周工作時數分布", "威脅風險分佈"]
-      for(let i=0; i<other_data.length; i++){
-        data.push({
-          key: 11 + i,
-          label: other_data[i]
-        });
-      }
-      return data;
-    };
     return {
       formData: {
         formType: "organization",
@@ -115,7 +110,7 @@ export default {
         season_year:"",
         season_q:"",
         daterange:"",
-        contentList: [],
+        contentList:[],
       },
       body: "",
       options: [{
@@ -131,12 +126,97 @@ export default {
         value: 'Q4',
         label: 'Q4(10月～12月)'
       }],
-      allContentList: generateAllContentList(),
-      contentLeftCheck: [0,1,2,3,4,5,11,12,13,14],
+      allContentList: [],
+      contentLeftCheck: [],
+      ats: 0,
+      ate: 0,
+      default_value:"",
+      endDateOpt: "",
+
     };
   },
   mounted(){
+    const generateAllContentList = disabled_list => {
+      
+      const data = [];
+      const data_type = ["使用者", "控制器", "資源", "分享資源", "檔案", "主機", "專案", "伺服器", "印表機", "網站", "IP位址"];
+      for (let i = 0; i < data_type.length; i++) {
+
+        data.push({
+          key: i,
+          label: data_type[i],
+          disabled: disabled_list.includes(i),
+        });
+      }
+      const other_data = ["整體風險值變化", "威脅風險分佈",  "日/周工作時數分布", "登入成功/失敗"]
+      for(let i=0; i<other_data.length; i++){
+        data.push({
+          key: 11 + i,
+          label: other_data[i]
+        });
+      }
+      return data;
+    };
+    let disabled_list = [];
     $(".el-transfer-panel__empty").text("無資料");
+    
+    apiService.getTidInfo().then((value) => {
+      let data = value.data;
+      // check datatype exist
+      if(data.totalScoredUsers == 0){
+        disabled_list.push(0);
+      }
+      if(data.totalScoredControllers == 0){
+        disabled_list.push(1);
+      }
+      if(data.totalScoredResources == 0){
+        disabled_list.push(2);
+      }
+      if(data.totalScoredShares == 0){
+        disabled_list.push(3);
+      }
+      if(data.totalScoredFiles == 0){
+        disabled_list.push(4);
+      }
+      if(data.totalScoredMachines == 0){
+        disabled_list.push(5);
+      }
+      if(data.totalScoredProjects == 0){
+        disabled_list.push(6);
+      }
+      if(data.totalScoredServers == 0){
+        disabled_list.push(7);
+      }
+      if(data.totalScoredPrinters == 0){
+        disabled_list.push(8)
+      }
+      if(data.totalScoredWebsites == 0){
+        disabled_list.push(9)
+      }
+      if(data.totalScoredIps == 0){
+        disabled_list.push(10)
+      }
+      
+      this.allContentList = generateAllContentList(disabled_list);
+      for(let i=0; i<this.allContentList.length; i++){
+        let d = this.allContentList[i];
+        if(!d.disabled){
+          this.formData.contentList.push(d.key);
+        }
+      }
+      console.log(data);
+      // let ts = new Date(data.time)
+      this.ats = data.timestart * 1000;
+      this.ate = data.timeend * 1000;
+
+      this.endDateOpt = {
+        disabledDate(time) {
+          return (time.getTime() < data.timestart*1000 - 24*60*60*1000) || (time.getTime() > data.timeend*1000);
+        }
+      }
+      this.default_value = this.ats
+      
+    })
   }
 }
 </script>
@@ -157,7 +237,7 @@ export default {
   }
   .form-div{
     width: 700px;
-    height: 500px;
+    height: 530px;
     margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;

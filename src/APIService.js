@@ -380,18 +380,29 @@ export class APIService {
     return response.data;
   }
 
-  async getRiskStream(ts, te){
+  async getRiskStream(){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;    
 
     let url = `${API_URL}/api/search/0/riskGraph/breakdown?count=100&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
     
-    if(ts && te){
-      url = url + '&ts=' + ts + '&te=' + te;
-    }
+    // if(ts && te){
+    //   url = url + '&ts=' + ts + '&te=' + te;
+    // }
     
     const response = await axios.get(url);
     // console.log(response);
+    return response.data;
+  }
+
+  async getTidInfo(ts, te){
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;    
+    let url = `${API_URL}/api/search/0/info?`;
+    if(ts && te){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
     return response.data;
   }
 
@@ -427,6 +438,170 @@ export class APIService {
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
     let url = `${API_URL}/api/search/0/controllers/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+
+  // get top risky resources
+  async getTopRiskyResources(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/resources/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    console.log(url);
+    
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed resources
+  async getTopAccessedResources(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/resources/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+  // get top risky shares
+  async getTopRiskyShares(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/shares/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed shares
+  async getTopAccessedShares(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/shares/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+  // get top risky Files
+  async getTopRiskyFiles(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/files/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    // console.log(url);
+    
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed files
+  async getTopAccessedFiles(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/files/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+
+  // get top risky machines
+  async getTopRiskyMachines(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/machines/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    // console.log(url);
+    
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed machines
+  async getTopAccessedMachines(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/machines/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -490,25 +665,27 @@ export class APIService {
     return rData;
   }
 
-  // get top risky resources
-  async getTopRiskyResources(ts, te) {
+  // get top risky servers
+  async getTopRiskyServers(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/resources/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/servers/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
+    // console.log(url);
+    
     const response = await axios.get(url);
     return response.data;
   }
 
-  // get top accessed resources
-  async getTopAccessedResources(ts, te) {
+  // get top accessed servers
+  async getTopAccessedServers(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/resources/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/servers/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -529,25 +706,28 @@ export class APIService {
     }
     return rData;
   }
-  // get top risky shares
-  async getTopRiskyShares(ts, te) {
+
+  // get top risky Printers
+  async getTopRiskyPrinters(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/shares/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/printers/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
+    // console.log(url);
+    
     const response = await axios.get(url);
     return response.data;
   }
 
-  // get top accessed shares
-  async getTopAccessedShares(ts, te) {
+  // get top accessed printers
+  async getTopAccessedPrinters(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
     // console.log(ts);
-    let url = `${API_URL}/api/search/0/shares/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    let url = `${API_URL}/api/search/0/printers/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -568,4 +748,89 @@ export class APIService {
     }
     return rData;
   }
+
+  // get top risky websites
+  async getTopRiskyWebsites(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/websites/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    // console.log(url);
+    
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed websites
+  async getTopAccessedWebsites(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/websites/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+
+  // get top risky ipaddresses
+  async getTopRiskyIPAddresses(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/ips/topRisky?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    // console.log(url);
+    
+    const response = await axios.get(url);
+    return response.data;
+  }
+
+  // get top accessed ipaddresses
+  async getTopAccessedIPAddresses(ts, te) {
+    let token = localStorage.getItem("interset_token");
+    axios.defaults.headers.common['Authorization'] = token;
+    // console.log(ts);
+    let url = `${API_URL}/api/search/0/ips/topAccessed?sort=maximum&markup=false&tz=UTC%2B8&count=10&keepAlive=300000`
+    if((ts!==0) && (te!==0)){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
+    const response = await axios.get(url);
+    // console.log(Object.keys(response.data.data));
+    let rData = [];
+    let data = response.data.data;
+    let keys = Object.keys(data);
+    // console.log(keys);
+    
+    for(let i=0; i<keys.length; i++){
+      let key = keys[i];
+      let kData = data[key]
+      for(let j=0; j<kData.length; j++){
+        kData[j]['accessed'] = key; 
+        rData.push(kData[j]);
+      }
+    }
+    return rData;
+  }
+
 }

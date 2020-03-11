@@ -1,9 +1,15 @@
 <template>
   <div>
-      <p :class="{ pHidden: !noData, pShow: noData }">please select at least one item.</p>
+      <!-- <p :class="{ pHidden: !noData, pShow: noData }">please select at least one item.</p> -->
       <el-tooltip effect="dark" content="PDF報表產生" placement="top-start">
        <el-button @click="pdfGenerate" type="primary">產生pdf報表</el-button>
       </el-tooltip>
+      <el-alert
+        v-show="notOKForm"
+        :title="alert_messages"
+        type="error"
+        show-icon>
+      </el-alert>
   </div>
 </template>
 
@@ -17,9 +23,11 @@ export default {
   name: "OrganizationReportGenerator",
   data(){
     return {
-      noData: false,
+      status: "",
+      notOKForm: false,
       ts: "",
       te: "",
+      alert_messages: "",
     }
   },
   props: {
@@ -446,7 +454,10 @@ export default {
       
     },
     generatePDFOrganWorkingHours(doc, daily_data, weekly_data){
-
+      console.log(daily_data);
+      console.log(weekly_data);
+      
+      
       // daily data
       daily_data = daily_data.map(function(d){
         return {
@@ -956,68 +967,91 @@ export default {
       doc.text(date_range, 85, 170);
       // 2nd Page After
       // console.log(this.ts);
+      //["使用者", "控制器", "資源", "分享資源", "檔案", "主機", "專案", "伺服器", "印表機", "網站", "IP位址"]
       let selection = this.formData.contentList.slice();
       let promiseArray = [
-        apiService.getTopRiskyUsers(this.ts, this.te),
-        apiService.getTopRiskyControllers(this.ts, this.te),
-        apiService.getTopAccessedControllers(this.ts, this.te),
-        apiService.getTopRiskyProjects(this.ts, this.te),
-        apiService.getTopAccessedProjects(this.ts, this.te),
-        apiService.getTopRiskyResources(this.ts, this.te),
-        apiService.getTopAccessedResources(this.ts, this.te),
-        apiService.getTopRiskyShares(this.ts, this.te),
-        apiService.getTopAccessedShares(this.ts, this.te),
-        apiService.getRiskGraph(this.ts, this.te),
-        apiService.getAuthenication(this.ts, this.te),
-        apiService.getWorkingHoursDaily(),
-        apiService.getWorkingHoursWeekly(),
-        apiService.getRiskStream(this.ts, this.te)
+        apiService.getTopRiskyUsers,
+        apiService.getTopRiskyControllers,
+        apiService.getTopAccessedControllers,
+        apiService.getTopRiskyResources,
+        apiService.getTopAccessedResources,
+        apiService.getTopRiskyShares,
+        apiService.getTopAccessedShares,
+        apiService.getTopRiskyFiles,
+        apiService.getTopAccessedFiles,
+        apiService.getTopRiskyMachines,
+        apiService.getTopAccessedMachines,
+        apiService.getTopRiskyProjects,
+        apiService.getTopAccessedProjects,
+        apiService.getTopRiskyServers,
+        apiService.getTopAccessedServers,
+        apiService.getTopRiskyPrinters,
+        apiService.getTopAccessedPrinters,
+        apiService.getTopRiskyWebsites,
+        apiService.getTopAccessedWebsites,
+        apiService.getTopRiskyIPAddresses,
+        apiService.getTopAccessedIPAddresses,
+        apiService.getRiskGraph,
+        apiService.getRiskStream,
+        apiService.getWorkingHoursDaily,
+        apiService.getWorkingHoursWeekly,
+        apiService.getAuthenication,
       ];
+
+      
       // let exectionPromiseArray = selection.map(d => {
       //   return promiseArray[d];
       // });
       let exectionPromiseArray = [];
       let pdf_map = {}
       let pdf_counter = 0;
-      selection = selection.sort();
+      selection = selection.sort(function(a, b){
+        return a - b;
+      });
+      let pts = this.ts;
+      let pte = this.te;
+      console.log(selection);
+      
+      
       selection.forEach(function(d){
+        console.log(d);
+        
         if(d == 0){
           // user
-          exectionPromiseArray.push(promiseArray[0]);
+          exectionPromiseArray.push(promiseArray[0](pts, pte));
           pdf_map[d] = pdf_counter;
           pdf_counter += 1;
-        }else if(d == 1 || d == 2 || d == 3 || d == 4 ){
-          // controller, project, resource, share
-          exectionPromiseArray.push(promiseArray[2*d-1]);
-          exectionPromiseArray.push(promiseArray[2*d]);
+        }else if(d >= 1 && d <= 10){
+          exectionPromiseArray.push(promiseArray[2*d-1](pts, pte));
+          exectionPromiseArray.push(promiseArray[2*d](pts, pte));
           pdf_map[d] = pdf_counter;
           pdf_counter += 2;
         }else if(d == 11){
           // risk graph
-          exectionPromiseArray.push(promiseArray[9]);
+          exectionPromiseArray.push(promiseArray[21](pts, pte));
           pdf_map[d] = pdf_counter;
           pdf_counter += 1;
         }else if(d == 12){
-          // authication
-          exectionPromiseArray.push(promiseArray[10]);
+          // risk graph stream
+          exectionPromiseArray.push(promiseArray[22](pts, pte));
           pdf_map[d] = pdf_counter;
           pdf_counter += 1;
         }else if(d == 13){
           //working hours daily
-          exectionPromiseArray.push(promiseArray[11]);
-          exectionPromiseArray.push(promiseArray[12]);
+          exectionPromiseArray.push(promiseArray[23]());
+          exectionPromiseArray.push(promiseArray[24]());
           pdf_map[d] = pdf_counter;
           pdf_counter += 2;
         }else if(d == 14){
-          exectionPromiseArray.push(promiseArray[13])
+          // authenication
+          exectionPromiseArray.push(promiseArray[25](pts, pte));
           pdf_map[d] = pdf_counter;
           pdf_counter += 1;
         }
       });
-      // console.log(pdf_map);
-      // console.log(selection);
-      
-              // get data, promise geting all data and generate pdf
+
+      // get data, promise geting all data and generate pdf
+      //["使用者", "控制器", "資源", "分享資源", "檔案", "主機", "專案", "伺服器", "印表機", "網站", "IP位址"]
       Promise.all(
                   exectionPromiseArray
                   )           
@@ -1032,7 +1066,15 @@ export default {
             let data = values[pdf_map[11]].data;
             this.generatePDFOrganRiskPage(doc, data);
             selection = this.removeFromSelection(selection, 11);
-          } else if(selection.includes(0)){
+          } else if(selection.includes(12)){
+            // ==========================
+            // risk graph stream
+            // ==========================
+            let data = values[pdf_map[12]].data;
+            this.generatePDFOrganRiskStream(doc, data);
+            // console.log(data);
+            selection = this.removeFromSelection(selection, 12);
+          }else if(selection.includes(0)){
             // ===========================
             // top risky user page
             // ===========================
@@ -1056,51 +1098,121 @@ export default {
             selection = this.removeFromSelection(selection, 1);
           } else if(selection.includes(2)){
             // ==========================
-            // top risky projects page
-            // ==========================
-            let data = values[pdf_map[2]].data;
-
-            this.generatePDFOrganPage(doc, data, 'project', 'risk', true, false);
-            // =============================
-            // top accessed projects page
-            // =============================
-            data = values[pdf_map[2] + 1];
-            this.generatePDFOrganPage(doc, data, 'project', 'access', true, true);
-            selection = this.removeFromSelection(selection, 2);
-          } else if(selection.includes(3)){
-            // ==========================
             // top risky resources page
             // ==========================
-            let data = values[pdf_map[3]].data;
+            let data = values[pdf_map[2]].data;
             
             this.generatePDFOrganPage(doc, data, 'resource', 'risk', true, false);
             // =============================
             // top accessed resources page
             // =============================
-            data = values[pdf_map[3] + 1];
+            data = values[pdf_map[2] + 1];
             this.generatePDFOrganPage(doc, data, 'resource', 'access', true, true);
-            selection = this.removeFromSelection(selection, 3);
-          } else if(selection.includes(4)){
+            selection = this.removeFromSelection(selection, 2);
+          } else if(selection.includes(3)){
             // ==========================
             // top risky share page
             // ==========================
-            let data = values[pdf_map[4]].data;
+            let data = values[pdf_map[3]].data;
             
             this.generatePDFOrganPage(doc, data, 'share', 'risk', true, false);
             // =============================
             // top accessed share page
             // =============================
-            data = values[pdf_map[4] + 1];
+            data = values[pdf_map[3] + 1];
             this.generatePDFOrganPage(doc, data, 'share', 'access', true, true);
+            selection = this.removeFromSelection(selection, 3);
+          } else if(selection.includes(4)){
+            // ==========================
+            // top risky files page
+            // ==========================
+            let data = values[pdf_map[4]].data;
+
+            this.generatePDFOrganPage(doc, data, 'file', 'risk', true, false);
+            // =============================
+            // top accessed files page
+            // =============================
+            data = values[pdf_map[4] + 1];
+            this.generatePDFOrganPage(doc, data, 'file', 'access', true, true);
             selection = this.removeFromSelection(selection, 4);
-          } else if(selection.includes(12)){
+          } else if(selection.includes(5)){
             // ==========================
-            // authenication page
+            // top risky machines page
             // ==========================
-            let data = values[pdf_map[12]].data;
-            // console.log(data);
-            this.generatePDFOrganAuthenicationPage(doc, data);
-            selection = this.removeFromSelection(selection, 12);
+            let data = values[pdf_map[5]].data;
+
+            this.generatePDFOrganPage(doc, data, 'machine', 'risk', true, false);
+            // =============================
+            // top accessed machines page
+            // =============================
+            data = values[pdf_map[5] + 1];
+            this.generatePDFOrganPage(doc, data, 'machine', 'access', true, true);
+            selection = this.removeFromSelection(selection, 5);
+          } else if(selection.includes(6)){
+            // ==========================
+            // top risky projects page
+            // ==========================
+            let data = values[pdf_map[6]].data;
+
+            this.generatePDFOrganPage(doc, data, 'project', 'risk', true, false);
+            // =============================
+            // top accessed projects page
+            // =============================
+            data = values[pdf_map[6] + 1];
+            this.generatePDFOrganPage(doc, data, 'project', 'access', true, true);
+            selection = this.removeFromSelection(selection, 6);
+          } else if(selection.includes(7)){
+            // ==========================
+            // top risky servers page
+            // ==========================
+            let data = values[pdf_map[7]].data;
+
+            this.generatePDFOrganPage(doc, data, 'server', 'risk', true, false);
+            // =============================
+            // top accessed servers page
+            // =============================
+            data = values[pdf_map[7] + 1];
+            this.generatePDFOrganPage(doc, data, 'server', 'access', true, true);
+            selection = this.removeFromSelection(selection, 7);
+          } else if(selection.includes(8)){
+            // ==========================
+            // top risky printers page
+            // ==========================
+            let data = values[pdf_map[8]].data;
+
+            this.generatePDFOrganPage(doc, data, 'printer', 'risk', true, false);
+            // =============================
+            // top accessed printers page
+            // =============================
+            data = values[pdf_map[8] + 1];
+            this.generatePDFOrganPage(doc, data, 'printer', 'access', true, true);
+            selection = this.removeFromSelection(selection, 8);
+          } else if(selection.includes(9)){
+            // ==========================
+            // top risky websites page
+            // ==========================
+            let data = values[pdf_map[9]].data;
+
+            this.generatePDFOrganPage(doc, data, 'website', 'risk', true, false);
+            // =============================
+            // top accessed websites page
+            // =============================
+            data = values[pdf_map[9] + 1];
+            this.generatePDFOrganPage(doc, data, 'website', 'access', true, true);
+            selection = this.removeFromSelection(selection, 9);
+          } else if(selection.includes(10)){
+            // ==========================
+            // top risky ipaddress page
+            // ==========================
+            let data = values[pdf_map[10]].data;
+
+            this.generatePDFOrganPage(doc, data, 'ipaddress', 'risk', true, false);
+            // =============================
+            // top accessed ipaddress page
+            // =============================
+            data = values[pdf_map[10] + 1];
+            this.generatePDFOrganPage(doc, data, 'ipaddress', 'access', true, true);
+            selection = this.removeFromSelection(selection, 10);
           } else if(selection.includes(13)){
             // ==========================
             // daily and weekly working hours page
@@ -1115,7 +1227,7 @@ export default {
             // risk graph stream ver. page
             // ==========================
             let data = values[pdf_map[14]].data;
-            this.generatePDFOrganRiskStream(doc, data);
+            this.generatePDFOrganAuthenicationPage(doc, data);
             selection = this.removeFromSelection(selection, 14);
           }
         }
@@ -1124,26 +1236,60 @@ export default {
     },
     pdfGenerate(){
 
+      this.notOKForm = true;
       if(this.formData.contentList.length == 0){
-        this.noData = true;
+        this.alert_messages = "請加入至少一項內容";
+      } else if(this.formData.timeType == "year" && !this.formData.year){
+        this.status = "year no year";
+        this.alert_messages = "請選擇年";
+        // this.pdfGenerateSingleUserReport();
+      } else if(this.formData.timeType == "season"){
+        if(!this.formData.season_year){
+          this.status = "season no year";
+          this.alert_messages = "請選擇季度的年";
+        }else if(!this.formData.season_q){
+          this.status = "season no season";
+          this.alert_messages = "請選擇季度的季";
+        }else {
+          this.notOKForm = false;
+          this.pdfGenerateSingleUserReport();
+        }
+      } else if(this.formData.timeType == "month" && !this.formData.month){
+        this.status = "month no month";
+        this.alert_messages = "請選擇月份";
+      } else if(this.formData.timeType == "custom" && !this.formData.daterange){
+        this.status = "custom no daterange";
+        this.alert_messages = "請選擇時間範圍";
       } else {
-        this.noData = false;
+        this.notOKForm = false;
         this.pdfGenerateOrganizationReport();
-      }
-    
-    
+      }        
     },
+    //["使用者", "控制器", "資源", "分享資源", "檔案", "主機", "專案", "伺服器", "印表機", "網站", "IP位址"]
+
     entityNameMapping(entityName){
       if(entityName == 'user'){
         return "使用者";
       }else if(entityName == 'controller'){
         return "控制器";
-      }else if(entityName == 'project'){
-        return "專案";
       }else if(entityName == 'share'){
         return "分享資源";
       }else if(entityName == 'resource'){
         return "資源";
+      }else if(entityName == 'file'){
+        return "檔案";
+      }else if(entityName == 'machine'){
+        return "主機";
+      }else if(entityName == 'project'){
+        return "專案";
+      }else if(entityName == 'server'){
+        return "伺服器"
+      }else if(entityName == 'printer'){
+        return "印表機";
+      }else if(entityName == 'website'){
+        return "網站";
+      }else if(entityName == 'ipaddress'){
+        return "IP位址";
       }
     },
     removeFromSelection(selection, data_type){
@@ -1161,6 +1307,10 @@ p {
   font-size: 10px;
 }
 
+.el-alert {
+  font-weight: 700;
+  margin-top: 5px;
+}
 .pShow {
   visibility: visible;
 }
