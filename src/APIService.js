@@ -184,7 +184,7 @@ export class APIService {
   async getUserAlertsThreatStatistics(userHash, ts, te){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    let url = `${API_URL}/api/search/0/alerts?count=1000&q=userid%3A`;
+    let url = `${API_URL}/api/search/0/alerts?count=2000&q=userid%3A`;
     if(userHash){
       url += userHash;
     }
@@ -198,27 +198,33 @@ export class APIService {
     let data = response.data.data;
     let threat_statistics = {};
     let family_statistics = {};
-
+    let threat_keys = [];
+    let family_keys = []
     while(data.length != 0){
       // console.log(data);
       data.forEach(function(d, i){
         let threat = d.templates.threat;
         let family = d.templates.family;
 
-        if(threat in threat_statistics){
+        if(threat_keys.includes(threat)){
           threat_statistics[threat] += 1;
         }else{
-          threat_statistics[threat] = 0
+          threat_keys.push(threat);
+          threat_statistics[threat] = 0;
         }
-        if(family in family_statistics){
+        if(family_keys.includes(family)){
           family_statistics[family] += 1;
         }else{
-          family_statistics[family] = 0
+          family_keys.push(family);
+          family_statistics[family] = 0;
         }
       });
+      // console.log(data);
       response = await axios.get(url + '&scrollId=' + scrollId);
       data = response.data.data;
       scrollId = response.data.scrollId;
+      
+      
     }
     let re_data = {
       threat: threat_statistics,
@@ -340,7 +346,7 @@ export class APIService {
   async getRiskGraph(ts, te) {
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;
-    let url = `${API_URL}/api/search/0/riskGraph?interval=day&tz=UTC%2B8`;
+    let url = `${API_URL}/api/search/0/riskGraph?count=100&tz=UTC%2B8`;
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
@@ -380,15 +386,15 @@ export class APIService {
     return response.data;
   }
 
-  async getRiskStream(){
+  async getRiskStream(ts, te){
     let token = localStorage.getItem("interset_token");
     axios.defaults.headers.common['Authorization'] = token;    
 
     let url = `${API_URL}/api/search/0/riskGraph/breakdown?count=100&breakdownBy=threat&includeRisk=true&tz=UTC%2B8`;
     
-    // if(ts && te){
-    //   url = url + '&ts=' + ts + '&te=' + te;
-    // }
+    if(ts && te){
+      url = url + '&ts=' + ts + '&te=' + te;
+    }
     
     const response = await axios.get(url);
     // console.log(response);

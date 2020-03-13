@@ -34,17 +34,20 @@
         placeholder="選擇年"
         :picker-options="endDateOpt"
         :default-value="default_value"
+        @change="disableSeason"
         v-show='formData.timeType === "season"'>
         </el-date-picker>
         <el-select v-show='formData.timeType === "season"' 
                    v-model="formData.season_q" 
                    placeholder="請選擇季度" 
-                   class="season-q-select">
+                   class="season-q-select"
+                   >
           <el-option
             v-for="item in options"
             :key="item.value"
             :label="item.label"
             :value="item.value"
+            :disabled="item.disabled"
             >
           </el-option>
         </el-select>
@@ -115,16 +118,20 @@ export default {
       body: "",
       options: [{
         value: 'Q1',
-        label: 'Q1(1月～3月)'
+        label: 'Q1(1月～3月)',
+        disabled: false,
       }, {
         value: 'Q2',
-        label: 'Q2(4月～6月)'
+        label: 'Q2(4月～6月)',
+        disabled: false,
       }, {
         value: 'Q3',
-        label: 'Q3(7月～9月)'
+        label: 'Q3(7月～9月)',
+        disabled: false,
       }, {
         value: 'Q4',
-        label: 'Q4(10月～12月)'
+        label: 'Q4(10月～12月)',
+        disabled: false,
       }],
       allContentList: [],
       contentLeftCheck: [],
@@ -148,7 +155,7 @@ export default {
           disabled: disabled_list.includes(i),
         });
       }
-      const other_data = ["整體風險值變化", "威脅風險分佈",  "日/周工作時數分布", "登入成功/失敗"]
+      const other_data = ["整體風險值變化", "風險值含威脅分佈",  "日/周工作時數分布", "登入成功/失敗"]
       for(let i=0; i<other_data.length; i++){
         data.push({
           key: 11 + i,
@@ -214,9 +221,27 @@ export default {
           return (time.getTime() < data.timestart*1000 - 24*60*60*1000) || (time.getTime() > data.timeend*1000);
         }
       }
-      this.default_value = this.ats
-      
+      this.default_value = this.ats;
+
     })
+  },
+  methods: {
+    disableSeason(){
+      console.log(this.formData.season_year);
+      let year = this.formData.season_year.getFullYear();
+      console.log(year);
+      // s1, s2, s3, s4
+      for(let i=0; i<4; i++){
+        let ss = new Date(year, 3*i, 1).getTime();
+        let se = new Date(year, 3*i + 3 , 1).getTime();
+        
+        if(this.ate < ss + 15*24*60*60*1000 || this.ats > se - 15*24*60*60*1000){
+          this.options[i]['disabled'] = true;
+        } else {
+          this.options[i]['disabled'] = false;
+        }
+      }
+    }
   }
 }
 </script>
@@ -237,7 +262,7 @@ export default {
   }
   .form-div{
     width: 700px;
-    height: 530px;
+    height: 500px;
     margin: 10px;
     padding: 10px;
     border: 3px solid lightgray;
@@ -247,5 +272,8 @@ export default {
     padding-right: 40px;
     padding-left: 20px;
     /* font-family: Arial, "新細明體"; */
+  }
+  .pdf-generate-button-div {
+    margin-top: 10px;
   }
 </style>

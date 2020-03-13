@@ -59,12 +59,39 @@ export default {
       })
       data.pop();
       
-      let margin = {top: 50, right: 100, left: 30, bottom: 80};
-      let chart_width = 1200 - margin.left - margin.right;
-      let chart_height = 400 - margin.top - margin.bottom;
+      let margin = {top: 50, right: 30, bottom: 100, left: 40};
+      let chart_width = 800 - margin.left - margin.right;
+      let chart_height = 450 - margin.top - margin.bottom;
+      
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 
       
-      // console.log(stacked_data);
+      // layer 
+      // grid layer
+      svg.append("g")
+          .attr("class", "x-grid");
+      svg.append("g")
+          .attr("class", "y-grid");
+      // axis layer
+      svg.append("g")
+          .attr("class", "x-axis");
+
+      svg.append("g")
+          .attr("class", "y-axis");
+      // chart layer
+      svg.append("g")
+          .attr("class", "stacked-stream-chart");
+      // legend
+      svg.append("g")
+          .attr("class", "legends");
+      
+      // scale
+      // x-scale
       let x_scale = d3.scaleTime()
           .domain([
             d3.min(data, function(d){
@@ -75,51 +102,16 @@ export default {
             })
           ])
           .range([0, chart_width]);
-
-      
-      // let y_scale = d3.scaleLinear()
-      //     .domain([0 ,
-      //       d3.max(data, function(d){
-      //         let sum = 0;
-      //         keys.forEach(function(key){
-      //           sum += d[key];
-      //         })
-      //         return sum;
-      //       })
-      //     ])
-      //     .range([chart_height, 0]);
+      // y-scale
       let y_scale = d3.scaleLinear()
           .domain([0 , 100
           ])
           .range([chart_height, 0]);
-      
-      
+      // color scale
       let color_scale = d3.scaleOrdinal()
           .domain(keys)
           .range(d3.schemeCategory10);
-
       
-
-      let svg = d3.select("#chart")
-          .append("svg")
-          .attr("width", chart_width + margin.left + margin.right)
-          .attr("height", chart_height + margin.top + margin.bottom)
-          .append("g")
-          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-      
-      // layer 
-      svg.append("g")
-          .attr("class", "stacked-stream-chart");
-      
-      svg.append("g")
-          .attr("class", "x-axis");
-
-      svg.append("g")
-          .attr("class", "y-axis");
-      
-      svg.append("g")
-          .attr("class", "legends");
-
       // layout
       let area = d3.area()
           .x(function(d, i){
@@ -141,7 +133,7 @@ export default {
       let stacked_data = d3.stack()
           .keys(keys)(data);
 
-      // chart layer
+      // stacked stream chart
       svg.select(".stacked-stream-chart")
           .selectAll(".stream")
           .data(stacked_data)
@@ -156,15 +148,19 @@ export default {
           .attr("fill", function(d, i){
             return color_scale(keys[i])
           })
+          .attr("fill-opacity", 0.5)
           .attr("stroke-width", "1px")
-          .attr("stroke", "black");
-
-      let time_format = d3.timeFormat('%m/%d');
-
+          .attr("stroke", function(d, i){
+            return color_scale(keys[i]);
+          })
+          .attr("stroke-opacity", 0.2);
+      // axis
+      let time_format = d3.timeFormat('%m-%d');
+      // x-axis
       let x_axis = d3.axisBottom(x_scale)
           .ticks(10)
           .tickFormat(time_format);
-
+      // y-axis
       let y_axis = d3.axisLeft(y_scale)
           .ticks(10);
 
@@ -172,10 +168,42 @@ export default {
           .attr("color", "black")
           .attr("transform", "translate(0, " + chart_height + ")")
           .call(x_axis);
+
       svg.select(".y-axis")
           .attr("color", "black")
           .call(y_axis);
       
+      svg.select(".x-axis")
+          .selectAll("text")
+          .attr("font-size", "15px");
+
+      svg.select(".y-axis")
+          .selectAll("text")
+          .attr("font-size", "15px");
+    
+      
+      // x-axis grid line
+      svg.select(".x-grid")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(x_axis
+                  .tickSize(-chart_height)
+                  // .tickValues([])
+                  .tickFormat("")
+                );
+      // y-axis grid line
+      svg.select(".y-grid")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(y_axis
+                  .tickValues([20, 40, 60, 80, 100])
+                  .tickSize(-chart_width)
+                  .tickFormat("")
+                );
+      // legends
       let legends = svg.select(".legends")
           .selectAll("legend")
           .data(keys)
@@ -203,12 +231,13 @@ export default {
           })
           .attr("font-size", "13px")
           .attr("text-anchor", "start");
+      // 
       let canvas = document.getElementById('canvas');
       let context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
       d3.select("#canvas")
           .attr("width", chart_width + margin.left + margin.right)
-          .attr("height", chart_height + margin.right + margin.left);
+          .attr("height", chart_height + margin.top + margin.bottom);
 
       let firstSvg = $('#chart');
       let content = $(firstSvg).html();
@@ -223,29 +252,47 @@ export default {
           .attr("height", 500);
       doc.addPage();
       doc.setFontSize(24);
-      doc.text("總體風險值變化(含威脅種類分佈)", 60, 20);
-      doc.addImage(imgData, 'PNG', 10, 70, 210, 80 );
+      doc.text("總體風險值變化(含威脅種類分佈)", 50, 20);
+      doc.addImage(imgData, 'PNG', 10, 50, 190, 90 );
       
     },
     generatePDFOrganRiskPage(doc, data){
-      doc.addPage();
-      doc.setFontSize(24);
-      doc.text("總體風險值變化", 60, 20);
-      // console.log(data);
-      // console.log(new Date(data[0].timestamp));
+      
       $('#chart').empty();
       $('#canvas').empty();
       
-      let time_format = d3.timeFormat('%m/%d');
+      let time_format = d3.timeFormat('%m-%d');
       let time_parse = d3.timeParse('%Y-%m-%dT%H:%M:%S%Z[UTC%Z]');
       data = data.map(function(d){ return {date: time_parse(d.timestampStr), risk: d.risk};});
       data.pop();
       data.shift();
       // console.log(data);
-      let margin = {top: 20, right: 20, bottom: 70, left: 40};
-      let chart_width = 500 ;
-      let chart_height = 350 ;
+      let margin = {top: 50, right: 30, bottom: 100, left: 40};
+      let chart_width = 800 - margin.left - margin.right;
+      let chart_height = 450 - margin.top - margin.bottom ;
+      let svg = d3.select("#chart")
+          .append("svg")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom)
+          .append("g")
+          .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
+      
+      // layer 
+      // grid layer
+      svg.append("g")
+          .attr("class", "x-grid");
+      svg.append("g")
+          .attr("class", "y-grid");
+      // axis layer
+      svg.append("g")
+          .attr("class", "x-axis");
+      svg.append("g")
+          .attr("class", "y-axis");
+      // chart layer
+      svg.append("g")
+          .attr("class", "line-chart")
       // scale
+      // x-scale
       let x_scale = d3.scaleTime()
           .domain([
             d3.min(data, function(d){
@@ -255,89 +302,114 @@ export default {
               return d.date;
             })
           ])
-          .range([margin.left, chart_width - margin.right]);
-      // console.log(data[0].date);
-      
-      // console.log(x_scale(data[0].date));
-      
+          .range([0, chart_width]);
+      // y-scale
       let y_scale = d3.scaleLinear()
           .domain([
-            0, d3.max(data, function(d){
-              return d.risk;
-            })
+            0, 100
           ])
-          .range([chart_height - margin.bottom, margin.top]);
-
-      let svg = d3.select("#chart")
-          .append("svg")
-          .attr("width", chart_width)
-          .attr("height", chart_height);
+          .range([chart_height, 0]);
       
-     
+      // Create area
+      let area = d3.area()
+          .defined(function(d){
+            return d.risk >= 0;
+          })
+          .x(function(d){
+            return x_scale(d.date);
+          })
+          .y0(chart_height)
+          .y1(function(d){
+            return y_scale(d.risk);
+          })
+         	.curve(d3.curveMonotoneX);
+      
+      svg.select(".line-chart")
+        .append("path")
+        .datum( data )
+        .attr("class", "area")
+        .attr("d", area)
+        .attr("fill", "#00c973")
+        .attr("fill-opacity", 0.2)
+        .attr("stroke", "#00a15c")
+        .attr("stroke-opacity", 0.5)
+        .attr("stroke-width", "2px");
+
+      // axis
       let x_axis = d3.axisBottom(x_scale)
-          .ticks(6)
+          .ticks(10)
           .tickFormat(time_format);
       
       let y_axis = d3.axisLeft(y_scale)
           .ticks(10);
 
-      svg.append("g")
-          .style('color', 'black')
-          .attr("transform", "translate(0, " + (chart_height - margin.bottom) + ")")
+      svg.select(".x-axis")
+          .attr('color', 'black')
+          .attr("transform", "translate(0, " + chart_height + ")")
           .call(x_axis);
-          // .selectAll("text")
-          // .style("text-anchor", "end")
-          // .attr("dx", "-.8em")
-          // .attr("dy", "-.55em")
-          // .attr("transform", "rotate(-90)");
       
-      svg.append("g")
-          .style('color', 'black')
-          .attr("transform", "translate(" + margin.left + ", 0)")
+      svg.select(".y-axis")
+          .attr('color', 'black')
           .call(y_axis);
       
-      // Create Line
-      let line = d3.line()
-          .defined(function(d){
-            return d.risk >= 0;
-          })
-          .x(function(d){
-            // console.log(x_scale(d.date))
-            return x_scale(d.date);
-          })
-          .y(function(d){
-            return y_scale(d.risk);
-          })
-         	.curve(d3.curveMonotoneX);
-      
-      svg.append( 'path' )
-        .datum( data )
-        .attr( 'fill', 'none' )
-        .attr( 'stroke', '#73FF36')
-        .attr( 'stroke-width', "2px")
-        .attr( 'd', line );
+      svg.select(".x-axis")
+          .selectAll("text")
+          .attr("font-size", "15px");
 
+      svg.select(".y-axis")
+          .selectAll("text")
+          .attr("font-size", "15px");
+      
+      // x-axis grid line
+      svg.select(".x-grid")
+          .attr("transform", "translate(0, " + chart_height + ")")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(x_axis
+                  .tickSize(-chart_height)
+                  // .tickValues([])
+                  .tickFormat("")
+                );
+      // y-axis grid line
+      svg.select(".y-grid")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(y_axis
+                  .tickValues([20, 40, 60, 80, 100])
+                  .tickSize(-chart_width)
+                  .tickFormat("")
+                );
+
+      // save svg as base64
       let canvas = document.getElementById('canvas');
       let context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom);
 
       let firstSvg = $('#chart');
       let content = $(firstSvg).html();
-      // console.log(content);
         
       context.drawSvg(content);
       let imgData = canvas.toDataURL('image/png');
-      // console.log(imgData);
-      doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
+      
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      doc.addPage();
+      doc.setFontSize(24);
+      doc.text("總體風險值變化", 70, 20);
+      doc.addImage(imgData, 'PNG', 10, 50, 190, 80);
       
     },
     generatePDFOrganAuthenicationPage(doc, data){
+      // clear #chart
       $('#chart').empty();
       $('#canvas').empty();
-      doc.addPage();
-      doc.setFontSize(24);
-      doc.text("登入失敗最高的使用者", 60, 20);
-
+      // d3 arguments
       let m = 2;
       let keys = ['totalSuccess', 'totalFailed'];
       let margin = {top: 50, right: 50, bottom: 70, left: 40};
@@ -350,13 +422,30 @@ export default {
           .append("g")
           .attr("transform", "translate(" + margin.left + ", " + margin.top +")");
       
+      // layer
+      svg.append("g")
+          .attr("class", "x-axis");
+      
+      svg.append("g")
+          .attr("class", "y-axis");
+
+      svg.append("g")
+          .attr("class", "y-grid")
+      
+      svg.append("g")
+          .attr("class", "stacked-bar-chart");
+      
+      svg.append("g")
+          .attr("class", "legend")
+      // scale
+      // x0 scale for entityName
       let x0_scale = d3.scaleBand()
             .domain(data.map(function(d){
               return d.entityName;}
             ))
             .rangeRound([0, chart_width])
             .paddingInner(0.2);
-      
+      // x1 scale for keys
       let x1_scale = d3.scaleBand()
             .domain(keys)
             .rangeRound([0, x0_scale.bandwidth()]);
@@ -368,32 +457,16 @@ export default {
               )
             })])
             .range([chart_height, 0]);
-
-      let z_scale = d3.scaleOrdinal()
+      // color_scale for keys
+      let color_scale = d3.scaleOrdinal()
             .range(["#41ef08", "#e93b26"]);
-
+      // legend scale
       let legend_scale = d3.scaleOrdinal()
             .domain(keys)
             .range(["登入成功", "登入失敗"]);
 
-      svg.append("g")
-        .attr("class", "x-axis")
-        .style('color', 'black')
-        .attr("transform", "translate(0, " + (chart_height) + ")")
-        .call(d3.axisBottom(x0_scale))
-        .selectAll("text")
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", "-.55em")
-        .attr("transform", "rotate(-90)");
-      
-      svg.append("g")
-        .attr("class", "y-axis")
-        .style('color', 'black')
-        // .attr("transform", "translate(" + margin.left + ", 0)")
-        .call(d3.axisLeft(y_scale));
-
-      svg.append("g")
+      // create stacked bar chart
+      svg.select(".stacked-bar-chart")
         .selectAll(".slice")
         .data(data)
         .enter()
@@ -401,15 +474,64 @@ export default {
         .attr("class", "slice")
         .attr("transform", function(d){return "translate(" + x0_scale(d.entityName) + ",0)"})
         .selectAll("rect")
-        .data(function(d){return keys.map(function(key){return {key: key, value:d[key]};});})
+        .data(function(d){
+          return keys.map(function(key){
+            return {key: key, value:d[key]};
+          });
+        })
         .enter()
         .append("rect")
-        .attr("x", function(d){return x1_scale(d.key);})
-        .attr("y", function(d){return y_scale(d.value);})
+        .attr("x", function(d){
+          return x1_scale(d.key);
+        })
+        .attr("y", function(d){
+          return y_scale(d.value);
+        })
         .attr("width", x1_scale.bandwidth())
-        .attr("height", function(d){return chart_height - y_scale(d.value)})
-        .attr("fill", function(d){return z_scale(d.key)});
+        .attr("height", function(d){
+          return chart_height - y_scale(d.value)
+        })
+        .attr("fill", function(d){
+          return color_scale(d.key)
+        })
+        .attr("fill-opacity", 0.5)
+        .attr("stroke", function(d){
+          return color_scale(d.key);
+        })
+        .attr("stroke-opacity", 0.8)
+        .attr("stroke-width", "2px")
+        .attr("stroke-dasharray", function(d){
+          let sw = x1_scale.bandwidth()
+          let sh = chart_height - y_scale(d.value);
+          return [sw+sh, sw, sh]
+        });
       
+      // create axis
+      let x0_axis = d3.axisBottom(x0_scale);
+      let y_axis = d3.axisLeft(y_scale); 
+      // x-axis
+      svg.select(".x-axis")
+        .attr("color", "black")
+        .attr("transform", "translate(0, " + (chart_height) + ")")
+        .call(x0_axis)
+        .selectAll("text")
+        .attr("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-.55em")
+        .attr("transform", "rotate(-90)");
+      // y-axis
+      svg.select(".y-axis")
+        .attr('color', 'black')
+        .call(y_axis);
+      // y-grid
+      svg.select(".y-grid")
+          .attr("color", "lightgrey")
+          .attr("stroke-opacity", 0.8)
+          .attr("shape-rendering", "crispEdges")
+          .call(y_axis
+                  .tickSize(-chart_width)
+                  .tickFormat(""));
+      // create legend
       let legend = d3.select('svg')
         .append("g")
         .attr("class", "legends")
@@ -421,16 +543,20 @@ export default {
         .attr("transform", function(d, i){
           return "translate(80," + (i * 20 + 5) + ")";
         });
-        // .style("opacity", "1");
-        // // .attr("font-family", "sans-serif")
-        // .attr("font-size", 10)
-        // .attr("text-anchor", "end");
       
       legend.append("rect")
         .attr("x", chart_width - 20)
         .attr("width", 15)
         .attr("height", 15)
-        .attr("fill", function(d){ return z_scale(d); });
+        .attr("fill", function(d){ 
+          return color_scale(d); 
+        })
+        .attr("fill-opacity", 0.5)
+        .attr("stroke", function(d){
+          return color_scale(d);
+        })
+        .attr("stroke-width", "1px")
+        .attr("stroke-opacity", 0.8);
 
       legend.append("text")
         .attr("x", chart_width - 30)
@@ -439,25 +565,30 @@ export default {
         .style("text-anchor", "end")
         .text(function(d){ return legend_scale(d);});
       
+      // save svg as base64 
       let canvas = document.getElementById('canvas');
       let context = canvas.getContext('2d');
       context.clearRect(0, 0, canvas.width, canvas.height);
+      d3.select("#canvas")
+          .attr("width", chart_width + margin.left + margin.right)
+          .attr("height", chart_height + margin.top + margin.bottom);
 
       let firstSvg = $('#chart');
       let content = $(firstSvg).html();
-      // console.log(content);
-        
+
       context.drawSvg(content);
       let imgData = canvas.toDataURL('image/png');
-      // console.log(imgData);
+      d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
+      // create pdf page 
+      doc.addPage();
+      doc.setFontSize(24);
+      doc.text("登入失敗最高的使用者", 60, 20);
       doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
       
     },
     generatePDFOrganWorkingHours(doc, daily_data, weekly_data){
-      console.log(daily_data);
-      console.log(weekly_data);
-      
-      
       // daily data
       daily_data = daily_data.map(function(d){
         return {
@@ -831,11 +962,12 @@ export default {
             .style('color', 'black')
             .attr("transform", "translate(0, " + chart_height + ")")
             .call(d3.axisBottom(x_scale))
-            .selectAll("text")
-            .style("text-anchor", "end")
-            .attr("dx", "-.8em")
-            .attr("dy", "-.55em")
-            .attr("transform", "rotate(-90)");
+            .selectAll(".tick text")
+            .call(this.wrap, x_scale.bandwidth());
+            // .attr("text-anchor", "end")
+            // .attr("dx", "-.8em")
+            // .attr("dy", "-.55em")
+            // .attr("transform", "rotate(-90)");
 
         svg.append("g")
             .style('color', 'black')
@@ -1101,7 +1233,7 @@ export default {
             // top risky resources page
             // ==========================
             let data = values[pdf_map[2]].data;
-            
+
             this.generatePDFOrganPage(doc, data, 'resource', 'risk', true, false);
             // =============================
             // top accessed resources page
@@ -1296,6 +1428,31 @@ export default {
       let d_index = selection.indexOf(data_type);
       selection.splice(d_index, 1);
       return selection;
+    },
+    wrap(text, width) {
+      text.each(function(d) {
+        let text = d3.select(this),
+            words = text.text().split(/([.-\s]+)/).reverse(),
+            word,
+            line = [],
+            lineNumber = 0,
+            lineHeight = 1.1, // ems
+            y = text.attr("y"),
+            dy = parseFloat(text.attr("dy")),
+            tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+        console.log(words);
+        
+        while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(""));
+          if (tspan.node().getComputedTextLength() > width) {
+            line.pop();
+            tspan.text(line.join(""));
+            line = [word];
+            tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          }
+        }
+      });
     }
   }
 }

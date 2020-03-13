@@ -32,12 +32,16 @@
         v-model="formData.year"
         type="year"
         placeholder="選擇年"
+        :picker-options="endDateOpt"
+        :default-value="default_value"
         v-show='formData.timeType === "year"'>
         </el-date-picker>
         <el-date-picker
         v-model="formData.month"
         type="month"
         placeholder="選擇月"
+        :picker-options="endDateOpt"
+        :default-value="default_value"
         v-show='formData.timeType === "month"'>
         </el-date-picker>
         <el-date-picker
@@ -45,6 +49,9 @@
         v-model="formData.season_year"
         type="year"
         placeholder="選擇年"
+        :picker-options="endDateOpt"
+        :default-value="default_value"
+        @change="disableSeason"
         v-show='formData.timeType === "season"'>
         </el-date-picker>
         <el-select v-show='formData.timeType === "season"' v-model="formData.season_q" placeholder="請選擇季度" class="season-q-select">
@@ -52,7 +59,9 @@
             v-for="item in options"
             :key="item.value"
             :label="item.label"
-            :value="item.value">
+            :value="item.value"
+            :disabled="item.disabled"
+            >
           </el-option>
         </el-select>
         <el-date-picker
@@ -62,6 +71,8 @@
           range-separator="至"
           start-placeholder="開始日期"
           end-placeholder="結束日期"
+          :picker-options="endDateOpt"
+          :default-value="default_value"
           unlink-panels
           >
         </el-date-picker>
@@ -142,21 +153,29 @@ export default {
       body: "",
       options: [{
         value: 'Q1',
-        label: 'Q1(1月～3月)'
+        label: 'Q1(1月～3月)',
+        disabled: false,
       }, {
         value: 'Q2',
-        label: 'Q2(4月～6月)'
+        label: 'Q2(4月～6月)',
+        disabled: false,
       }, {
         value: 'Q3',
-        label: 'Q3(7月～9月)'
+        label: 'Q3(7月～9月)',
+        disabled: false,
       }, {
         value: 'Q4',
-        label: 'Q4(10月～12月)'
+        label: 'Q4(10月～12月)',
+        disabled: false,
       }],
       allUserList: [],
       allContentList: generateAllContentList(),
       contentLeftCheck: [],
       contentRightCheck: [],
+      ats: 0,
+      ate: 0,
+      default_value: "",
+      endDateOpt: "",
     };
   },
   mounted(){
@@ -169,6 +188,39 @@ export default {
     this.contentRightCheck = [];
     this.contentLeftCheck= []
     this.formData.contentList = [0 , 2, 3, 4, 5, 6];
+
+    // let ts = new Date(data.time)
+    apiService.getTidInfo().then((value) => {
+      let data = value.data;
+      this.ats = data.timestart * 1000;
+      this.ate = data.timeend * 1000;
+
+      this.endDateOpt = {
+        disabledDate(time) {
+          return (time.getTime() < data.timestart*1000 - 24*60*60*1000) || (time.getTime() > data.timeend*1000);
+        }
+      }
+      this.default_value = this.ats;
+    })
+    
+  },
+  methods: {
+    disableSeason(){
+      console.log(this.formData.season_year);
+      let year = this.formData.season_year.getFullYear();
+      console.log(year);
+      // s1, s2, s3, s4
+      for(let i=0; i<4; i++){
+        let ss = new Date(year, 3*i, 1).getTime();
+        let se = new Date(year, 3*i + 3 , 1).getTime();
+        
+        if(this.ate < ss + 15*24*60*60*1000 || this.ats > se - 15*24*60*60*1000){
+          this.options[i]['disabled'] = true;
+        } else {
+          this.options[i]['disabled'] = false;
+        }
+      }
+    }
   }
 }
 </script>
@@ -204,6 +256,6 @@ export default {
     margin-left: 50px;
   }
   .pdf-generate-button-div {
-    padding-top: 10px;
+    margin-top: 10px;
   }
 </style>
