@@ -474,7 +474,6 @@ export class APIService {
     if((ts!==0) && (te!==0)){
       url = url + '&ts=' + ts + '&te=' + te;
     }
-    console.log(url);
     
     const response = await axios.get(url);
     return response.data;

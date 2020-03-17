@@ -36,6 +36,113 @@ export default {
     },
   },
   methods: {
+    generatePDFOrganIndexPage(doc, selection){
+      console.log(selection);
+      // console.log(pdf_map);
+      // index title
+      doc.addPage();
+      doc.setFontSize(35);
+      doc.text("目錄", 95, 20);
+      let line = 0;
+      let page_number = 0
+      let selection_count = selection.length;
+      doc.setFontSize(20);
+      for(let i=0; i<selection_count; i++){
+        if(selection.includes(11)){
+          // risk graph
+          doc.text("總體風險值變化..................................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          selection = this.removeFromSelection(selection, 11);
+          line += 1;
+          page_number += 1;
+        } else if (selection.includes(12)){
+          // risk graph stream
+          doc.text("總體風險值變化(含威脅種類分佈)..................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          selection = this.removeFromSelection(selection, 12);
+          line += 1;
+          page_number += 1;
+        } else if (selection.includes(0)){
+          doc.text("風險值最高的前10位使用者............................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          selection = this.removeFromSelection(selection, 0);
+          line += 1;
+          page_number += 1;
+        } else if (selection.includes(1)){
+          doc.text("風險值最高的前10個控制器............................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個控制器........................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 1);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(2)){
+          doc.text("風險值最高的前10個資源................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個資源............................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 2);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(3)){
+          doc.text("風險值最高的前10個分享資源........................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個分享資源....................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 3);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(4)){
+          doc.text("風險值最高的前10個檔案................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個檔案............................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(5)){
+          doc.text("風險值最高的前10個主機................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個主機............................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 5);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(6)){
+          doc.text("風險值最高的前10個專案................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個專案............................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 6);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(7)){
+          doc.text("風險值最高的前10個伺服器............................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個伺服器........................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 7);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(8)){
+          doc.text("風險值最高的前10個印表機............................................" + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個印表機........................................" +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 8);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(9)){
+          doc.text("風險值最高的前10個網站................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個網站............................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 9);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(10)){
+          doc.text("風險值最高的前10個IP位址............................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          doc.text("接入次數最多的前10個IP位址........................................." +  (page_number+2), 20, 20 + 15 * (line+2));
+          selection = this.removeFromSelection(selection, 10);
+          line += 2;
+          page_number += 2;
+        } else if (selection.includes(13)){
+          doc.text("日/周工作時間分布............................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          selection = this.removeFromSelection(selection, 13);
+          line += 1;
+          page_number += 1;
+        } else if (selection.includes(14)){
+          doc.text("登入成功/失敗次數............................................................." + (page_number+1), 20, 20 + 15 * (line+1));
+          selection = this.removeFromSelection(selection, 14);
+          line += 1;
+          page_number += 1;
+        }
+        if(line == 16 || line == 17){
+          doc.addPage();
+          line = 0;
+        }
+      }
+      
+      
+    },
     generatePDFOrganRiskStream(doc, data){
       $('#chart').empty();
       $('#canvas').empty();
@@ -69,20 +176,18 @@ export default {
           .attr("height", chart_height + margin.top + margin.bottom)
           .append("g")
           .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-
       
       // layer 
+      // axis layer
+      svg.append("g")
+          .attr("class", "x-axis");
+      svg.append("g")
+          .attr("class", "y-axis");
       // grid layer
       svg.append("g")
           .attr("class", "x-grid");
       svg.append("g")
           .attr("class", "y-grid");
-      // axis layer
-      svg.append("g")
-          .attr("class", "x-axis");
-
-      svg.append("g")
-          .attr("class", "y-axis");
       // chart layer
       svg.append("g")
           .attr("class", "stacked-stream-chart");
@@ -339,7 +444,6 @@ export default {
       let x_axis = d3.axisBottom(x_scale)
           .ticks(10)
           .tickFormat(time_format);
-      
       let y_axis = d3.axisLeft(y_scale)
           .ticks(10);
 
@@ -413,7 +517,7 @@ export default {
       let m = 2;
       let keys = ['totalSuccess', 'totalFailed'];
       let margin = {top: 50, right: 50, bottom: 70, left: 40};
-      let chart_width = 500 - margin.right - margin.left;
+      let chart_width = 700 - margin.right - margin.left;
       let chart_height = 350 - margin.top - margin.bottom;
       let svg = d3.select("#chart")
           .append('svg')
@@ -423,18 +527,18 @@ export default {
           .attr("transform", "translate(" + margin.left + ", " + margin.top +")");
       
       // layer
+      // axis layer
       svg.append("g")
           .attr("class", "x-axis");
-      
       svg.append("g")
           .attr("class", "y-axis");
-
+      // grid layer
       svg.append("g")
           .attr("class", "y-grid")
-      
+      // chart layer
       svg.append("g")
           .attr("class", "stacked-bar-chart");
-      
+      // legend layer
       svg.append("g")
           .attr("class", "legend")
       // scale
@@ -503,7 +607,7 @@ export default {
         .attr("stroke-dasharray", function(d){
           let sw = x1_scale.bandwidth()
           let sh = chart_height - y_scale(d.value);
-          return [sw+sh, sw, sh]
+          return [sw+sh, sw, sh];
         });
       
       // create axis
@@ -514,11 +618,12 @@ export default {
         .attr("color", "black")
         .attr("transform", "translate(0, " + (chart_height) + ")")
         .call(x0_axis)
-        .selectAll("text")
-        .attr("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", "-.55em")
-        .attr("transform", "rotate(-90)");
+        .selectAll(".tick text")
+        .call(this.wrap, x0_scale.bandwidth());
+        // .attr("text-anchor", "end")
+        // .attr("dx", "-.8em")
+        // .attr("dy", "-.55em")
+        // .attr("transform", "rotate(-90)");
       // y-axis
       svg.select(".y-axis")
         .attr('color', 'black')
@@ -585,7 +690,7 @@ export default {
       doc.addPage();
       doc.setFontSize(24);
       doc.text("登入失敗最高的使用者", 60, 20);
-      doc.addImage(imgData, 'PNG', 20, 50, 150, 150);
+      doc.addImage(imgData, 'PNG', 20, 50, 150, 100);
       
     },
     generatePDFOrganWorkingHours(doc, daily_data, weekly_data){
@@ -616,15 +721,16 @@ export default {
           .attr("transform", "translate(" + (margin.left + chart_width / 2) + ", " + (margin.top + chart_height / 2) + ")");
     
       // layer
+      // bg chart layer
       svg.append("g")
           .attr("class", "bg-pie-chart");
-      
+      // chart layer
       svg.append("g")
           .attr("class", "arcs");
-      
+      // chart border layer
       svg.append("g")
           .attr("class", "bg-circle");
-
+      // label layer
       svg.append("g")
           .attr("class", "labels");
 
@@ -909,11 +1015,16 @@ export default {
       let pageTitle = "";
       let pageTableHeader = ""
       if(pageType == "risk"){
-        pageTitle = "風險最高的";
+        pageTitle = "風險值最高的前10";
         pageTableHeader = "風險值";
       }else if(pageType == "access"){
-        pageTitle = "接入次數最多的";
+        pageTitle = "接入次數最多的前10";
         pageTableHeader = "接入次數";
+      }
+      if(entityName == "user"){
+        pageTitle += "位";
+      }else{
+        pageTitle += "個";
       }
       
       if(table_flag){
@@ -942,24 +1053,77 @@ export default {
         })
       }
       if(chart_flag){
+        // clear #chart
         $('#chart').empty();
         $('#canvas').empty();
-        let margin = {top: 20, right: 20, bottom: 70, left: 40};
-        let chart_width = 500 - margin.right - margin.left;
-        let chart_height = 350 - margin.top - margin.bottom;
-        let x_scale = d3.scaleBand().rangeRound([0, chart_width]).padding(0.05);
-        let y_scale = d3.scaleLinear().rangeRound([chart_height, 0]);
+        // d3 arguments
+        let margin = {top: 20, right: 20, bottom: 90, left: 60};
+        let chart_width = 600 - margin.right - margin.left;
+        let chart_height = 400 - margin.top - margin.bottom;
+        
         let svg = d3.select("#chart")
-                  .append("svg")
-                  .attr("width", chart_width + margin.right + margin.left)
-                  .attr("height", chart_height + margin.top + margin.bottom)
-                  .append("g")
-                  .attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
-        x_scale.domain(data.map(function(d){return d.entityName;}));          
-        y_scale.domain([0, d3.max(data, function(d){return +d.accessed;})]);
+            .append("svg")
+            .attr("width", chart_width + margin.left + margin.right)
+            .attr("height", chart_height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + ", " + margin.right + ")");
+
+        // layer
+        // axis layer
         svg.append("g")
-            .attr("class", "x-axis")
-            .style('color', 'black')
+            .attr("class", "x-axis");
+        svg.append("g")
+            .attr("class", "y-axis")
+        svg.append("g")
+            .attr("class", "bar-chart");
+        svg.append("g")
+            .attr("class", "bar-chart-label");
+
+        // scale
+        let x_scale = d3.scaleBand()
+            .domain(data.map(function(d){
+              return d.entityName;
+            }))
+            .rangeRound([0, chart_width])
+            .padding(0.05);
+        
+        let y_scale = d3.scaleLinear()
+            .domain([0, d3.max(data, function(d){
+              return +d.accessed
+            })])
+            .rangeRound([chart_height, 0]);
+            
+        
+        // creating chart
+        svg.select(".bar-chart")
+            .selectAll("rect")
+            .data(data)
+            .enter()
+            .append("rect")
+            .attr("x", function(d){
+              return x_scale(d.entityName);
+            })
+            .attr("width", x_scale.bandwidth())
+            .attr("y", function(d){
+              return y_scale(d.accessed);
+            })
+            .attr("height", function(d){
+              return chart_height - y_scale(d.accessed);
+            })
+            .attr("fill", "#0066ff")
+            .attr("fill-opacity", 0.5)
+            .attr("stroke", "#0066ff")
+            .attr("stroke-opacity", 0.8)
+            .attr("stroke-width", "2px")
+            .attr("stroke-dasharray", function(d){
+              let sw = x_scale.bandwidth()
+              let sh = chart_height - y_scale(d.accessed);
+              return [sw+sh, sw, sh];
+            })
+          
+          // creating axis
+        svg.select(".x-axis")
+            .attr("color", "black")
             .attr("transform", "translate(0, " + chart_height + ")")
             .call(d3.axisBottom(x_scale))
             .selectAll(".tick text")
@@ -968,52 +1132,47 @@ export default {
             // .attr("dx", "-.8em")
             // .attr("dy", "-.55em")
             // .attr("transform", "rotate(-90)");
-
-        svg.append("g")
-            .style('color', 'black')
-            .attr("class", "y-axis")
+      
+        svg.select(".y-axis")
+            .attr("color", "black")
             .call(d3.axisLeft(y_scale));
 
-        svg.selectAll("rect")
-            .data(data)
-            .enter()
-            .append("rect")
-            .attr("x", function(d){return x_scale(d.entityName);})
-            .attr("width", x_scale.bandwidth())
-            .attr("y", function(d){return y_scale(d.accessed);})
-            .attr("height", function(d){return chart_height - y_scale(d.accessed);})
-            .attr("fill", "#0066ff");
-
-          svg.selectAll("text.bar-label")
-            .data(data)
-            .enter()
-            .append("text")
-            .attr("class", "bar-label")
-            .text(function(d){
-              return d.accessed;
-            })
-            .attr("x", function(d, i){
-              return x_scale(d.entityName) + x_scale.bandwidth() / 2;
-            })
-            .attr("y", function(d, i){
-              return y_scale(d.accessed) + 15;
-            })
-            .attr("font-size", 14)
-            .attr("fill", "#fff")
-            .attr("text-anchor", "middle");
+        // bar chart label
+        svg.select(".bar-chart-label")
+          .selectAll("text")
+          .data(data)
+          .enter()
+          .append("text")
+          .text(function(d){
+            return d.accessed;
+          })
+          .attr("x", function(d, i){
+            return x_scale(d.entityName) + x_scale.bandwidth() / 2;
+          })
+          .attr("y", function(d, i){
+            return y_scale(d.accessed) + 15;
+          })
+          .attr("font-size", 14)
+          .attr("fill", "#fff")
+          .attr("text-anchor", "middle");
 
         let canvas = document.getElementById('canvas');
         let context = canvas.getContext('2d');
         context.clearRect(0, 0, canvas.width, canvas.height);
+        d3.select("#canvas")
+            .attr("width", chart_width + margin.left + margin.right)
+            .attr("height", chart_height + margin.top + margin.bottom);
 
         let firstSvg = $('#chart');
         let content = $(firstSvg).html();
-        // console.log(content);
         
         context.drawSvg(content);
         let imgData = canvas.toDataURL('image/png');
+        d3.select("#canvas")
+          .attr("width", 500)
+          .attr("height", 500);
         // console.log(imgData);
-        doc.addImage(imgData, 'PNG', 20, 125, 150, 150);
+        doc.addImage(imgData, 'PNG', 20, 125, 150, 100);
         
       }
     },
@@ -1051,8 +1210,6 @@ export default {
         doc.text(t + "月報", 80, 160);
       }
 
-
-
       doc.setFontSize(10);
       // console.log(this.formData);
 
@@ -1083,10 +1240,7 @@ export default {
         this.ts = this.formData.daterange[0];
         this.te = this.formData.daterange[1];
       }
-      // console.log(this.ts);
-      // console.log(this.te);
-      
-      
+
       this.ts = this.ts.getTime();
       this.te = this.te.getTime();
 
@@ -1142,11 +1296,8 @@ export default {
       });
       let pts = this.ts;
       let pte = this.te;
-      console.log(selection);
-      
       
       selection.forEach(function(d){
-        console.log(d);
         
         if(d == 0){
           // user
@@ -1154,6 +1305,7 @@ export default {
           pdf_map[d] = pdf_counter;
           pdf_counter += 1;
         }else if(d >= 1 && d <= 10){
+
           exectionPromiseArray.push(promiseArray[2*d-1](pts, pte));
           exectionPromiseArray.push(promiseArray[2*d](pts, pte));
           pdf_map[d] = pdf_counter;
@@ -1189,6 +1341,7 @@ export default {
                   )           
             .then((values) =>   
       {
+        this.generatePDFOrganIndexPage(doc, selection.slice());
         let selection_count = selection.length;
         for (let i=0; i<selection_count; i++){
           if(selection.includes(11)){
@@ -1432,7 +1585,7 @@ export default {
     wrap(text, width) {
       text.each(function(d) {
         let text = d3.select(this),
-            words = text.text().split(/([.-\s]+)/).reverse(),
+            words = text.text().split(/([.-\s/s_]+)/).reverse(),
             word,
             line = [],
             lineNumber = 0,
@@ -1440,9 +1593,15 @@ export default {
             y = text.attr("y"),
             dy = parseFloat(text.attr("dy")),
             tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
-        console.log(words);
+        // console.log(text);
+        if(words.slice().pop() == ""){
+          words.pop();
+        }
+        // console.log(words);
         
         while (word = words.pop()) {
+          // console.log(word);
+          
           line.push(word);
           tspan.text(line.join(""));
           if (tspan.node().getComputedTextLength() > width) {

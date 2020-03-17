@@ -146,6 +146,13 @@ export default {
     const generateAllContentList = disabled_list => {
       
       const data = [];
+      const other_data = ["整體風險值變化", "風險值變化含威脅分佈",  "日/周工作時間分布", "登入成功/失敗次數"]
+      for(let i=0; i<other_data.length; i++){
+        data.push({
+          key: 11 + i,
+          label: other_data[i]
+        });
+      }
       const data_type = ["使用者", "控制器", "資源", "分享資源", "檔案", "主機", "專案", "伺服器", "印表機", "網站", "IP位址"];
       for (let i = 0; i < data_type.length; i++) {
 
@@ -153,13 +160,6 @@ export default {
           key: i,
           label: data_type[i],
           disabled: disabled_list.includes(i),
-        });
-      }
-      const other_data = ["整體風險值變化", "風險值含威脅分佈",  "日/周工作時數分布", "登入成功/失敗"]
-      for(let i=0; i<other_data.length; i++){
-        data.push({
-          key: 11 + i,
-          label: other_data[i]
         });
       }
       return data;
@@ -211,7 +211,7 @@ export default {
           this.formData.contentList.push(d.key);
         }
       }
-      console.log(data);
+
       // let ts = new Date(data.time)
       this.ats = data.timestart * 1000;
       this.ate = data.timeend * 1000;
