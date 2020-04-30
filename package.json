@@ -11,7 +11,7 @@
     "core-js": "^3.4.3",
     "d3-scale-break": "^0.1.11",
     "element-ui": "^2.13.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "jspdf": "^1.5.3",
     "jspdf-customfonts": "0.0.4-rc.4",
     "vue": "^2.6.10",
@@ -21,7 +21,7 @@
   "devDependencies": {
     "@vue/cli-plugin-babel": "^4.1.0",
     "@vue/cli-service": "^4.1.0",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "vue-template-compiler": "^2.6.10"
   },
   "browserslist": [
